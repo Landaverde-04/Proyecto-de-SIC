@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Catálogo de Cuentas</title>
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'style.css' %}">
+    <!-- Enlace para Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+</head>
+<body>
+    <h1>Catálogo de Cuentas</h1>
+    
+    <table>
+        <thead>
+            <tr>
+                <th>Código</th>
+                <th>Nombre</th>
+                <th>Editar</th>
+                <th>Eliminar</th>
+            </tr>
+        </thead>
+        <tbody>
+            <!-- Recorrer las cuentas y mostrarlas en la tabla -->
+            {% for cuenta in cuentas %}
+            <tr>
+                <td>{{ cuenta.codigo }}</td>
+                <td>{{ cuenta.nombre }}</td>
+                <td class="action-cell">
+                    <a href="{% url 'editar_cuenta' cuenta.pk %}" class="icon-button">
+                        <i class="fas fa-pencil-alt"></i> <!-- Icono de lápiz para editar -->
+                    </a>
+                </td>
+                <td class="action-cell">
+                    <form action="{% url 'eliminar_cuenta' cuenta.pk %}" method="POST" onsubmit="return confirmarEliminar();">
+                        {% csrf_token %}
+                        <button type="submit" class="icon-button">
+                            <i class="fas fa-trash-alt"></i> <!-- Icono de basurero para eliminar -->
+                        </button>
+                    </form>
+                </td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="4">No hay cuentas registradas.</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <br>
+
+    <!-- Botón para registrar una nueva cuenta -->
+    <a href="{% url 'nueva_cuenta' %}"><button class="menu-button">Registrar Nueva Cuenta</button></a>
+    
+    <!-- Botón para regresar a la página de inicio -->
+    <a href="{% url 'inicio' %}"><button class="menu-button">Regresar</button></a>
+</body>
+</html>
+
+
+
+

@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Editar Cuenta</title>
+</head>
+<body>
+    <h1>Editar Cuenta: {{ cuenta.codigo }}</h1>
+    
+    <form method="post">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <button type="submit">Guardar cambios</button>
+    </form>
+
+    <a href="{% url 'catalogo_cuentas' %}"><button>Cancelar</button></a>
+</body>
+</html>
