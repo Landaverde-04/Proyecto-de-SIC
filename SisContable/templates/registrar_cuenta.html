@@ -25,7 +25,8 @@
     <form class="formulario"  method="post">
         <h1>Registrar Cuenta</h1>
         {% csrf_token %}
-        <label for="codigo">Código:</label><br>
+        <br>
+        <label class="codigo" for="codigo">Código:</label><br>
         <input type="number" id="codigo" name="codigo" required><br><br>
 
         <label for="nombre">Nombre de la cuenta:</label><br>
