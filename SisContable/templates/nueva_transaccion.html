@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nueva Transacción</title>
+    <script>
+        // Función para calcular la sumatoria de Debe y Haber
+        function calcularTotales() {
+            let totalDebe = 0;
+            let totalHaber = 0;
+
+            // Sumar valores de Debe
+            document.querySelectorAll('input[name$="-debe"]').forEach(input => {
+                totalDebe += parseFloat(input.value) || 0;
+            });
+
+            // Sumar valores de Haber
+            document.querySelectorAll('input[name$="-haber"]').forEach(input => {
+                totalHaber += parseFloat(input.value) || 0;
+            });
+
+            document.getElementById("totalDebe").innerText = totalDebe.toFixed(2);
+            document.getElementById("totalHaber").innerText = totalHaber.toFixed(2);
+        }
+
+        // Validar la partida doble
+        function validarPartidaDoble() {
+            const totalDebe = parseFloat(document.getElementById("totalDebe").innerText) || 0;
+            const totalHaber = parseFloat(document.getElementById("totalHaber").innerText) || 0;
+
+            if (totalDebe !== totalHaber) {
+                alert("Error: La partida doble no está equilibrada. Debe ser igual a Haber.");
+                return false;
+            }
+            return true;
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            document.querySelectorAll('input[name$="-debe"], input[name$="-haber"]').forEach(input => {
+                input.addEventListener('input', calcularTotales);
+            });
+            calcularTotales();
+        });
+
+        // Función para añadir una nueva fila al formset
+        function addFormRow() {
+            const formContainer = document.querySelector("#tablaCuentas tbody");
+            const totalForms = document.getElementById("id_form-TOTAL_FORMS");
+            const currentFormCount = parseInt(totalForms.value);
+
+            // Obtener la primera fila para clonar
+            const firstRow = formContainer.querySelector("tr");
+
+            if (!firstRow) {
+                alert("No hay filas para clonar");
+                return;
+            }
+
+            // Clonar la primera fila del formset
+            const newRow = firstRow.cloneNode(true);
+
+            // Limpiar los valores de los campos en la nueva fila
+            newRow.querySelectorAll("input, select").forEach((input) => {
+                const name = input.name.replace(/-\d+-/, `-${currentFormCount}-`);
+                input.name = name;
+                input.id = `id_${name}`;
+                if (input.type === "text" || input.type === "number") {
+                    input.value = "";  // Limpiar valores
+                }
+            });
+
+            // Agregar la nueva fila al tbody
+            formContainer.appendChild(newRow);
+
+            // Incrementar el valor de TOTAL_FORMS
+            totalForms.value = currentFormCount + 1;
+
+            // Agregar el listener de evento a los nuevos campos
+            newRow.querySelectorAll('input[name$="-debe"], input[name$="-haber"]').forEach(input => {
+                input.addEventListener('input', calcularTotales);
+            });
+        }
+    </script>
+</head>
+<body>
+    <h1>Registrar Nueva Transacción</h1>
+
+    <form method="post" onsubmit="return validarPartidaDoble();">
+        {% csrf_token %}
+        
+        <!-- Mostrar errores globales del formset (ej: partida doble) -->
+        {% if formset.non_form_errors %}
+            <div class="alert alert-danger">
+                {{ formset.non_form_errors }}
+            </div>
+        {% endif %}
+        
+        <!-- Detalles de la transacción -->
+        <fieldset>
+            <legend>Detalles de la Transacción</legend>
+            {{ transaccion_form.as_p }} 
+        </fieldset>
+
+        <!-- Formulario de cuentas asociadas -->
+        <fieldset>
+            <legend>Cuentas Asociadas</legend>
+
+            {{ formset.management_form }}
+
+            <table border="1" id="tablaCuentas">
+                <thead>
+                    <tr>
+                        <th>Nombre de Cuenta</th>
+                        <th>Debe</th>
+                        <th>Haber</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for form in formset.forms %}
+                    <tr>
+                        <td>{{ form.cuenta }}</td>
+                        <td>{{ form.debe }}</td>
+                        <td>{{ form.haber }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+                <tfoot>
+                    <tr>
+                        <td>Total:</td>
+                        <td id="totalDebe">0.00</td>
+                        <td id="totalHaber">0.00</td>
+                    </tr>
+                </tfoot>
+            </table>
+        </fieldset>
+
+        <button type="button" onclick="addFormRow()">Agregar Cuenta</button>
+        <button type="submit">Guardar Transacción</button>
+    </form>
+
+    <a href="{% url 'transacciones' %}">
+        <button type="button">Regresar</button>
+    </a>
+</body>
+</html>
+
+
+

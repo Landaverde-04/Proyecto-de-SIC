@@ -1,5 +1,6 @@
 from django.db import models
 from django.core.exceptions import ValidationError
+import uuid
 
 class Cuenta(models.Model):
     # Código de la cuenta contable, puede tener hasta 6 dígitos.
@@ -34,14 +35,19 @@ class Cuenta(models.Model):
         return f"{self.codigo} - {self.nombre}"
 
 class Transaccion(models.Model):
+    id_transaccion = models.CharField(max_length=10, primary_key=True)  # Clave primaria personalizada
     fecha = models.DateField()
+
+    def save(self, *args, **kwargs):
+        if not self.id_transaccion:  # Solo generar si no se ha establecido un ID.
+            self.id_transaccion = str(uuid.uuid4().hex[:10])  # Genera un ID único de hasta 10 caracteres.
+        super().save(*args, **kwargs)
 
     # Validación de la partida doble: la suma del Debe debe ser igual a la suma del Haber.
     def validar_partida_doble(self):
         total_debe = 0 
         total_haber = 0  
 
-        # Recorrer las cuentas asociadas a esta transacción y sumar los valores de "Debe" y "Haber".
         for cuenta_transaccion in self.cuentatransaccion_set.all():
             total_debe += cuenta_transaccion.debe
             total_haber += cuenta_transaccion.haber
@@ -49,12 +55,11 @@ class Transaccion(models.Model):
         if total_debe != total_haber:
             raise ValidationError(f"La partida doble no está equilibrada: Debe {total_debe}, Haber {total_haber}")
 
-    #validacion
     def clean(self):
         self.validar_partida_doble()
 
     def __str__(self):
-        return f"Transacción {self.id} - {self.fecha}"
+        return f"Transacción {self.id_transaccion} - {self.fecha}"
 
 class CuentaTransaccion(models.Model):
     transaccion = models.ForeignKey(Transaccion, on_delete=models.CASCADE)
