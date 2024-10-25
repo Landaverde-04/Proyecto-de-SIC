@@ -1,0 +1,59 @@
+p{
+    font-family: sans-serif;
+}
+
+body{
+    background-color:#ebe8e5;
+    margin: auto;
+}
+
+h1{
+    text-align: center;
+    color: rgb(226, 229, 233);
+    font-style: italic;
+}
+
+label{
+    color: rgb(226, 229, 233);
+    text-align: center;
+    margin: 0 0 20px 10px;
+    font-size: 14px;
+}
+
+input{
+    width: 80%;
+    margin: 0 0 10px 10px;
+    background-color: transparent;
+    border: none;
+    border-bottom: 1.5px solid rgb(255, 255, 255);
+    color: rgb(226, 229, 233);
+    font-size: 17px;
+    
+}
+
+#codigo{
+    width: 30%;
+}
+
+.formulario{
+    background-color: rgb(84, 87, 228);
+    width: 300px;
+    height: 250px;
+    padding: 2px 10px 10px 10px;
+    margin: 50px auto;
+    box-shadow: 0px 0px 50px 0px #0007;
+    border-radius: 7%;
+}
+
+button{
+    font-family: sans-serif;
+    width: 30%;
+    text-align: center;
+    margin: 0px 0px 0 40px;
+    color: aliceblue;
+    background-color: transparent;
+    border: aliceblue 2px solid;
+    padding: 3px;
+    font-weight: bold;
+    
+}
