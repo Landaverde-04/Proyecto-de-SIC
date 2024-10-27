@@ -6,6 +6,7 @@
     <title>Registrar Cuenta</title>
     {% load static %}
     <link rel="stylesheet" href="{% static 'registrar_cuenta.css' %}">
+    <link rel="stylesheet" href="{% static 'menu.css' %}">
     <script>
         // Función para mostrar mensaje de confirmación si hay datos escritos en los campos
         function confirmarRegresar(event) {
@@ -21,7 +22,29 @@
         }
     </script>
 </head>
-<body>    
+<body class="cuerpo">
+    <header class="contenedor">
+        <div class="content">
+            <div class="menu container">
+                <a href="{% url 'inicio' %}" onclick="confirmarRegresar(event)" class="logo">INICIO</a>
+                <input type="checkbox" id="menu"/>
+                <label for="menu" class="label-menu">
+                    <img src="{% static 'menu.png' %}" class="menu-icono" alt="">
+                </label>
+                <nav class="navbar">
+                    <ul>
+                        <li><a href="{% url 'catalogo_cuentas' %}" onclick="confirmarRegresar(event)">Catalogo de cuentas</a></li>
+                        <li><a href=""onclick="confirmarRegresar(event)">Reportes contables</a></li>
+                        <li><a href="{% url 'transacciones' %}"onclick="confirmarRegresar(event)">Transacciones</a></li>
+                        <li><a href=""onclick="confirmarRegresar(event)">Metodos de costeo</a></li>
+                    </ul>
+                </nav>
+            </div>
+        </div>
+    </header>  
+</body>
+<br>
+<body class="cuerpo-registro">    
     <form class="formulario"  method="post">
         <h1>Registrar Cuenta</h1>
         {% csrf_token %}
@@ -34,7 +57,7 @@
 
         <button type="submit">Registrar</button>
         <a href="{% url 'catalogo_cuentas' %}" onclick="confirmarRegresar(event)">
-            <button type="button">Regresar</button>
+            
         </a>
     </form>
 

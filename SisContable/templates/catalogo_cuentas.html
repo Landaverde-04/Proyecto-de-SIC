@@ -6,10 +6,33 @@
     <title>Catálogo de Cuentas</title>
     {% load static %}
     <link rel="stylesheet" href="{% static 'catalogo-cuentas.css' %}">
+    <link rel="stylesheet" href="{% static 'menu.css' %}">
     <!-- Enlace para Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
 </head>
+<body class="cuerpo">
+    <header class="contenedor">
+        <div class="content">
+            <div class="menu container">
+                <a href="{% url 'inicio' %}" class="logo">INICIO</a>
+                <input type="checkbox" id="menu"/>
+                <label for="menu">
+                    <img src="{% static 'menu.png' %}" class="menu-icono" alt="">
+                </label>
+                <nav class="navbar">
+                    <ul>
+                        <li><a href="{% url 'catalogo_cuentas' %}">Catalogo de cuentas</a></li>
+                        <li><a href="">Reportes contables</a></li>
+                        <li><a href="{% url 'transacciones' %}">Transacciones</a></li>
+                        <li><a href="">Metodos de costeo</a></li>
+                    </ul>
+                </nav>
+            </div>
+        </div>
+    </header>  
+</body>
 <body>
+    <br>
     <h1>Catálogo de Cuentas</h1>
     
     <table>
@@ -17,8 +40,7 @@
             <tr>
                 <th>Código</th>
                 <th>Nombre</th>
-                <th>Editar</th>
-                <th>Eliminar</th>
+                <th>Editar</th>                
             </tr>
         </thead>
         <tbody>
@@ -31,15 +53,7 @@
                     <a href="{% url 'editar_cuenta' cuenta.pk %}" class="icon-button">
                         <i class="fas fa-pencil-alt"></i> <!-- Icono de lápiz para editar -->
                     </a>
-                </td>
-                <td class="action-cell">
-                    <form action="{% url 'eliminar_cuenta' cuenta.pk %}" method="POST" onsubmit="return confirmarEliminar();">
-                        {% csrf_token %}
-                        <button type="submit" class="icon-button">
-                            <i class="fas fa-trash-alt"></i> <!-- Icono de basurero para eliminar -->
-                        </button>
-                    </form>
-                </td>
+                </td>                
             </tr>
             {% empty %}
             <tr>
@@ -48,14 +62,9 @@
             {% endfor %}
         </tbody>
     </table>
-
     <br>
-
     <!-- Botón para registrar una nueva cuenta -->
-    <a href="{% url 'nueva_cuenta' %}"><button class="menu-button">Registrar Nueva Cuenta</button></a>
-    
-    <!-- Botón para regresar a la página de inicio -->
-    <a href="{% url 'inicio' %}"><button class="menu-button">Regresar</button></a>
+    <a href="{% url 'nueva_cuenta' %}"><button class="menu-button">Registrar Nueva Cuenta</button></a>    
 </body>
 </html>
 

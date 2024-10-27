@@ -3,6 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    {% load static %}    
+    <link rel="stylesheet" href="{% static 'menu.css' %}">
     <title>Nueva Transacción</title>
     <script>
         // Función para calcular la sumatoria de Debe y Haber
@@ -83,6 +85,27 @@
         }
     </script>
 </head>
+<body class="cuerpo">
+    <header class="contenedor">
+        <div class="content">
+            <div class="menu container">
+                <a href="{% url 'inicio' %}" class="logo">INICIO</a>
+                <input type="checkbox" id="menu"/>
+                <label for="menu">
+                    <img src="{% static 'menu.png' %}" class="menu-icono" alt="">
+                </label>
+                <nav class="navbar">
+                    <ul>
+                        <li><a href="{% url 'catalogo_cuentas' %}">Catalogo de cuentas</a></li>
+                        <li><a href="">Reportes contables</a></li>
+                        <li><a href="{% url 'transacciones' %}">Transacciones</a></li>
+                        <li><a href="">Metodos de costeo</a></li>
+                    </ul>
+                </nav>
+            </div>
+        </div>
+    </header>  
+</body>
 <body>
     <h1>Registrar Nueva Transacción</h1>
 

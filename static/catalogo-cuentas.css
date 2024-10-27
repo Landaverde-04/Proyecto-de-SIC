@@ -1,16 +1,7 @@
-/* General styles */
-* {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
-}
 
-body {
-    font-family: 'Arial', sans-serif;
+body {    
     background-color: #E0F7FA; /* Fondo azul claro */
-    color: #333;
-    line-height: 1.6;
-    padding: 20px;
+    color: #333;       
 }
 
 /* Estilos para encabezados */
@@ -18,13 +9,6 @@ h1, h2, h3 {
     color: #1E3A8A; /* Azul marino */
     text-align: center;
     margin-bottom: 20px;
-}
-
-/* Estilos de contenedor principal */
-.container {
-    width: 80%;
-    margin: 0 auto;
-    text-align: center;
 }
 
 /* Estilos para los botones */

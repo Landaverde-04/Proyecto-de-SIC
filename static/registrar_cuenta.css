@@ -2,7 +2,7 @@ p{
     font-family: sans-serif;
 }
 
-body{
+.cuerpo-registro{
     background-color:#ebe8e5;
     margin: auto;
 }
@@ -10,8 +10,8 @@ body{
 h1{
     font-family: sans-serif;
     text-align: center;
-    color: rgb(226, 229, 233);
-    
+    color: rgb(226, 229, 233);    
+    margin: 20px 0 10px 0;
 }
 
 label{
@@ -43,7 +43,7 @@ input{
 }
 
 .formulario{
-    background: linear-gradient(rgb(84, 87, 228), #000a);
+    background: linear-gradient(rgb(84, 87, 228), rgb(80,49,145));
     /*background-color: rgb(84, 87, 228);*/
     width: 400px;
     height: 350px;
@@ -57,7 +57,7 @@ button{
     font-family: sans-serif;
     width: 30%;
     text-align: center;
-    margin: 10px 0px 0 50px;
+    margin: 10px 0px 0 130px;
     color: aliceblue;
     background-color: transparent;
     border: aliceblue 2px solid;
