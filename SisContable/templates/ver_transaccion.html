@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    {% load static %}
+    <title>Detalle de Transacción</title>
+    <link rel="stylesheet" href="{% static 'menu.css' %}">
+    <link rel="stylesheet" href="{% static 'styles.css' %}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+</head>
+<body class="cuerpo">
+    <header class="contenedor">
+        <div class="content">
+            <div class="menu container">
+                <a href="{% url 'inicio' %}" class="logo">INICIO</a>
+                <input type="checkbox" id="menu"/>
+                <label for="menu">
+                    <img src="{% static 'menu.png' %}" class="menu-icono" alt="">
+                </label>
+                <nav class="navbar">
+                    <ul>
+                        <li><a href="{% url 'catalogo_cuentas' %}">Catálogo de Cuentas</a></li>
+                        <li><a href="{% url 'libro_mayor' %}">Libro Mayor</a></li> 
+                        <li><a href="{% url 'transacciones' %}">Transacciones</a></li>
+                        <li><a href="">Métodos de Costeo</a></li>
+                        <li><a href="">Reportes Contables</a></li>
+                    </ul>
+                </nav>
+            </div>
+        </div>
+    </header>
+
+    <h1>Detalle de Transacción</h1>
+
+    <!-- Mostrar la fecha de la transacción -->
+    <p><strong>Fecha:</strong> {{ transaccion.fecha }}</p>
+
+    <!-- Tabla de movimientos de la transacción -->
+    <table border="1">
+        <thead>
+            <tr>
+                <th>Fecha</th>
+                <th>Número de Transacción</th>
+                <th>Descripción</th>
+                <th>Debe</th>
+                <th>Haber</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for movimiento in movimientos %}
+            <tr>
+                <td>{{ movimiento.transaccion.fecha }}</td>
+                <td>{{ movimiento.transaccion.id_transaccion }}</td>
+                <td>{{ movimiento.cuenta.nombre }}</td>
+                <td>{{ movimiento.debe }}</td>
+                <td>{{ movimiento.haber }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+        <tfoot>
+            <tr>
+                <td colspan="3"><strong>Total:</strong></td>
+                <td id="totalDebe">0.00</td>
+                <td id="totalHaber">0.00</td>
+            </tr>
+        </tfoot>
+    </table>
+
+    <!-- Botón de regreso al inicio -->
+    <br>
+    <a href="{% url 'inicio' %}">
+        <button type="button">Regresar al Inicio</button>
+    </a>
+
+    <!-- JavaScript para calcular totales de Debe y Haber dinámicamente -->
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            let totalDebe = 0;
+            let totalHaber = 0;
+
+            // Sumar todas las celdas de Debe y Haber
+            document.querySelectorAll("tbody tr").forEach(row => {
+                const debe = parseFloat(row.querySelector("td:nth-child(4)").innerText) || 0;
+                const haber = parseFloat(row.querySelector("td:nth-child(5)").innerText) || 0;
+                totalDebe += debe;
+                totalHaber += haber;
+            });
+
+            // Mostrar los totales en el pie de la tabla
+            document.getElementById("totalDebe").innerText = totalDebe.toFixed(2);
+            document.getElementById("totalHaber").innerText = totalHaber.toFixed(2);
+        });
+    </script>
+</body>
+</html>
+
+
+

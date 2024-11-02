@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    {% load static %}
+    <title>Libro Mayor</title>
+    <link rel="stylesheet" href="{% static 'menu.css' %}">
+    <link rel="stylesheet" href="{% static 'styles.css' %}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+</head>
+<body class="cuerpo">
+    <header class="contenedor">
+        <div class="content">
+            <div class="menu container">
+                <a href="{% url 'inicio' %}" class="logo">INICIO</a>
+                <input type="checkbox" id="menu"/>
+                <label for="menu">
+                    <img src="{% static 'menu.png' %}" class="menu-icono" alt="">
+                </label>
+                <nav class="navbar">
+                    <ul>
+                        <li><a href="{% url 'catalogo_cuentas' %}">Catálogo de Cuentas</a></li>
+                        <li><a href="{% url 'libro_mayor' %}">Libro Mayor</a></li> 
+                        <li><a href="{% url 'transacciones' %}">Transacciones</a></li>
+                        <li><a href="">Métodos de Costeo</a></li>
+                        <li><a href="">Reportes Contables</a></li>
+                    </ul>
+                </nav>
+            </div>
+        </div>
+    </header>
+
+    <h1>Libro Mayor</h1>
+
+    <!-- Filtros -->
+    <div class="filter-container">
+        <label for="tipoCuenta">Filtrar por Tipo de Cuenta:</label>
+        <select id="tipoCuenta" name="tipoCuenta" onchange="filtrarCuentasPorTipo()">
+            <option value="">Todos</option>
+            <option value="1">Activo</option>
+            <option value="2">Pasivo</option>
+            <option value="3">Patrimonio</option>
+            <option value="4">Cuentas de Resultado Deudoras</option>
+            <option value="5">Cuentas de Resultado Acreedoras</option>
+        </select>
+
+        <label for="cuenta">Cuenta:</label>
+        <select id="cuenta" name="cuenta">
+            <option value="">--------</option>
+            <!-- Opciones de cuentas serán cargadas aquí dinámicamente -->
+        </select>
+
+        <label for="fecha_inicio">Fecha de inicio:</label>
+        <input type="date" id="fecha_inicio" name="fecha_inicio">
+
+        <label for="fecha_fin">Fecha de fin:</label>
+        <input type="date" id="fecha_fin" name="fecha_fin">
+
+        <button onclick="filtrarMovimientos()">🔍 Filtrar Movimientos</button>
+        <button onclick="borrarFiltros()">🔄 Restablecer Filtros</button>
+    </div>
+
+    <!-- Tabla de movimientos del libro mayor (vacía por defecto) -->
+    <table border="1">
+        <thead>
+            <tr>
+                <th>Fecha</th>
+                <th>Número de Transacción</th>
+                <th>Descripción</th>
+                <th>Debe</th>
+                <th>Haber</th>
+            </tr>
+        </thead>
+        <tbody id="tablaMovimientos">
+            <tr>
+                <td colspan="5">Seleccione una cuenta y aplique el filtro para ver los movimientos.</td>
+            </tr>
+        </tbody>
+        <tfoot>
+            <tr>
+                <td colspan="3"><strong>Total:</strong></td>
+                <td id="totalDebe">0.00</td>
+                <td id="totalHaber">0.00</td>
+            </tr>
+            <tr>
+                <td colspan="3"><strong>Saldo:</strong></td>
+                <td colspan="2" id="saldo">0.00</td>
+            </tr>
+        </tfoot>
+    </table>
+
+    <!-- Botón de regreso al inicio -->
+    <br>
+    <a href="{% url 'inicio' %}">
+        <button type="button">Regresar al Inicio</button>
+    </a>
+
+    <!-- JavaScript para manejar los filtros y el cálculo de totales -->
+    <script>
+        async function filtrarCuentasPorTipo() {
+            const tipoCuenta = document.getElementById("tipoCuenta").value;
+            const cuentaSelect = document.getElementById("cuenta");
+
+            cuentaSelect.innerHTML = '<option value="">--------</option>';
+
+            if (!tipoCuenta) {
+                return;
+            }
+
+            const response = await fetch(`/api/filtrar-cuentas/?tipo_cuenta=${tipoCuenta}`);
+            const data = await response.json();
+
+            data.cuentas.forEach(cuenta => {
+                const option = document.createElement("option");
+                option.value = cuenta.id;
+                option.textContent = `${cuenta.codigo} - ${cuenta.nombre}`;
+                cuentaSelect.appendChild(option);
+            });
+        }
+
+        async function filtrarMovimientos() {
+            const cuentaId = document.getElementById("cuenta").value;
+            const fechaInicio = document.getElementById("fecha_inicio").value;
+            const fechaFin = document.getElementById("fecha_fin").value;
+            const tipoCuenta = document.getElementById("tipoCuenta").value;
+
+            if (!cuentaId) {
+                alert("Seleccione una cuenta para mostrar los movimientos.");
+                return;
+            }
+
+            const response = await fetch(`/api/libro-mayor/?cuenta=${cuentaId}&fecha_inicio=${fechaInicio}&fecha_fin=${fechaFin}`);
+            const data = await response.json();
+
+            const tablaMovimientos = document.getElementById("tablaMovimientos");
+            tablaMovimientos.innerHTML = "";
+
+            let totalDebe = 0;
+            let totalHaber = 0;
+
+            data.movimientos.forEach(mov => {
+                const row = document.createElement("tr");
+                row.innerHTML = `
+                    <td>${mov.fecha}</td>
+                    <td>${mov.numero_transaccion}</td>
+                    <td>${mov.descripcion}</td>
+                    <td>${parseFloat(mov.debe).toFixed(2)}</td>
+                    <td>${parseFloat(mov.haber).toFixed(2)}</td>
+                `;
+                tablaMovimientos.appendChild(row);
+
+                totalDebe += parseFloat(mov.debe) || 0;
+                totalHaber += parseFloat(mov.haber) || 0;
+            });
+
+            document.getElementById("totalDebe").innerText = totalDebe.toFixed(2);
+            document.getElementById("totalHaber").innerText = totalHaber.toFixed(2);
+
+            let saldoText = "Cuenta Saldada";
+            let saldo = 0;
+
+            if (["1", "4"].includes(tipoCuenta)) { // Activo y Resultado Deudor
+                saldo = totalDebe - totalHaber;
+                saldoText = saldo > 0 ? `Saldo Deudor: ${saldo.toFixed(2)}` : saldo < 0 ? `Saldo Acreedor: ${Math.abs(saldo).toFixed(2)}` : "Cuenta Saldada";
+            } else if (["2", "3", "5"].includes(tipoCuenta)) { // Pasivo, Patrimonio y Resultado Acreedor
+                saldo = totalHaber - totalDebe;
+                saldoText = saldo > 0 ? `Saldo Acreedor: ${saldo.toFixed(2)}` : saldo < 0 ? `Saldo Deudor: ${Math.abs(saldo).toFixed(2)}` : "Cuenta Saldada";
+            }
+
+            document.getElementById("saldo").innerText = saldoText;
+        }
+
+        function borrarFiltros() {
+            document.getElementById("tipoCuenta").value = "";
+            document.getElementById("cuenta").innerHTML = '<option value="">--------</option>';
+            document.getElementById("fecha_inicio").value = "";
+            document.getElementById("fecha_fin").value = "";
+
+            document.getElementById("tablaMovimientos").innerHTML = '<tr><td colspan="5">Seleccione una cuenta y aplique el filtro para ver los movimientos.</td></tr>';
+            document.getElementById("totalDebe").innerText = "0.00";
+            document.getElementById("totalHaber").innerText = "0.00";
+            document.getElementById("saldo").innerText = "0.00";
+        }
+    </script>
+</body>
+</html>
+
+
+
+
+
+
+
+

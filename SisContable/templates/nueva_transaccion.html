@@ -44,45 +44,6 @@
             });
             calcularTotales();
         });
-
-        // Función para añadir una nueva fila al formset
-        function addFormRow() {
-            const formContainer = document.querySelector("#tablaCuentas tbody");
-            const totalForms = document.getElementById("id_form-TOTAL_FORMS");
-            const currentFormCount = parseInt(totalForms.value);
-
-            // Obtener la primera fila para clonar
-            const firstRow = formContainer.querySelector("tr");
-
-            if (!firstRow) {
-                alert("No hay filas para clonar");
-                return;
-            }
-
-            // Clonar la primera fila del formset
-            const newRow = firstRow.cloneNode(true);
-
-            // Limpiar los valores de los campos en la nueva fila
-            newRow.querySelectorAll("input, select").forEach((input) => {
-                const name = input.name.replace(/-\d+-/, `-${currentFormCount}-`);
-                input.name = name;
-                input.id = `id_${name}`;
-                if (input.type === "text" || input.type === "number") {
-                    input.value = "";  // Limpiar valores
-                }
-            });
-
-            // Agregar la nueva fila al tbody
-            formContainer.appendChild(newRow);
-
-            // Incrementar el valor de TOTAL_FORMS
-            totalForms.value = currentFormCount + 1;
-
-            // Agregar el listener de evento a los nuevos campos
-            newRow.querySelectorAll('input[name$="-debe"], input[name$="-haber"]').forEach(input => {
-                input.addEventListener('input', calcularTotales);
-            });
-        }
     </script>
 </head>
 <body class="cuerpo">
@@ -158,7 +119,6 @@
             </table>
         </fieldset>
 
-        <button type="button" onclick="addFormRow()">Agregar Cuenta</button>
         <button type="submit">Guardar Transacción</button>
     </form>
 
@@ -167,6 +127,9 @@
     </a>
 </body>
 </html>
+
+
+
 
 
 

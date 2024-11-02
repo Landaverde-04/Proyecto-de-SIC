@@ -1,23 +1,17 @@
 from django.db import models
 from django.core.exceptions import ValidationError
-import uuid
+from django.db.models import Sum
 
 class Cuenta(models.Model):
-    # Código de la cuenta contable, puede tener hasta 6 dígitos.
     codigo = models.CharField(max_length=6, unique=True)
-    
-    # Nombre o descripción de la cuenta.
     nombre = models.CharField(max_length=100)
+    saldo = models.DecimalField(max_digits=12, decimal_places=2, default=0.00)  # Campo de saldo
 
-    # Método para determinar el tipo de cuenta basado en el primer dígito del código.
     def get_tipo_cuenta(self):
-        """Devuelve el tipo de cuenta según el primer dígito del código."""
+        """Determina el tipo de cuenta basado en el primer dígito del código."""
         if not self.codigo or not self.codigo.isdigit():
             return "Código inválido"
-
         primer_digito = self.codigo[0]
-
-        # Clasificación de las cuentas por el primer dígito del código.
         if primer_digito == '1':
             return "Activo"
         elif primer_digito == '2':
@@ -31,57 +25,58 @@ class Cuenta(models.Model):
         else:
             return "Tipo de cuenta no definido"
 
+    def actualizar_saldo(self, debe, haber):
+        """Actualiza el saldo de la cuenta basado en su naturaleza."""
+        tipo_cuenta = self.get_tipo_cuenta()
+        if tipo_cuenta in ["Activo", "Gastos"]:
+            self.saldo += debe - haber
+        elif tipo_cuenta in ["Pasivo", "Patrimonio", "Ventas"]:
+            self.saldo += haber - debe
+        self.save()
+
     def __str__(self):
-        return f"{self.codigo} - {self.nombre}"
+        return f"{self.codigo} - {self.nombre} - Saldo: {self.saldo}"
+
 
 class Transaccion(models.Model):
-    id_transaccion = models.CharField(max_length=10, primary_key=True)  # Clave primaria personalizada
+    id_transaccion = models.AutoField(primary_key=True)
     fecha = models.DateField()
 
+    def calcular_totales(self):
+        """Calcula el total de Debe y Haber de la transacción sumando los movimientos asociados."""
+        total_debe = self.movimientos.aggregate(total=Sum("debe"))["total"] or 0
+        total_haber = self.movimientos.aggregate(total=Sum("haber"))["total"] or 0
+        return total_debe, total_haber
+
+    def actualizar_saldos(self):
+        """Actualiza el saldo de cada cuenta involucrada en la transacción."""
+        for movimiento in self.movimientos.all():
+            cuenta = movimiento.cuenta
+            cuenta.actualizar_saldo(movimiento.debe, movimiento.haber)
+
     def save(self, *args, **kwargs):
-        if not self.id_transaccion:  # Solo generar si no se ha establecido un ID.
-            self.id_transaccion = str(uuid.uuid4().hex[:10])  # Genera un ID único de hasta 10 caracteres.
-        super().save(*args, **kwargs)
-
-    # Validación de la partida doble: la suma del Debe debe ser igual a la suma del Haber.
-    def validar_partida_doble(self):
-        total_debe = 0 
-        total_haber = 0  
-
-        for cuenta_transaccion in self.cuentatransaccion_set.all():
-            total_debe += cuenta_transaccion.debe
-            total_haber += cuenta_transaccion.haber
-
-        if total_debe != total_haber:
-            raise ValidationError(f"La partida doble no está equilibrada: Debe {total_debe}, Haber {total_haber}")
-
-    def clean(self):
-        self.validar_partida_doble()
+        """Guarda la transacción y actualiza los saldos de las cuentas relacionadas."""
+        if not self.pk:
+            super().save(*args, **kwargs)
+        
+        # Actualizar saldos de las cuentas involucradas
+        self.actualizar_saldos()
+        super().save()
 
     def __str__(self):
         return f"Transacción {self.id_transaccion} - {self.fecha}"
 
-class CuentaTransaccion(models.Model):
-    transaccion = models.ForeignKey(Transaccion, on_delete=models.CASCADE)
+
+class Movimiento(models.Model):
+    transaccion = models.ForeignKey(
+        Transaccion, on_delete=models.CASCADE, related_name="movimientos"
+    )
     cuenta = models.ForeignKey(Cuenta, on_delete=models.CASCADE)
     debe = models.DecimalField(max_digits=12, decimal_places=2, default=0.00)
     haber = models.DecimalField(max_digits=12, decimal_places=2, default=0.00)
 
-    # Método para calcular el saldo según el tipo de cuenta.
-    def calcular_saldo(self):
-        tipo_cuenta = self.cuenta.get_tipo_cuenta()
-
-        # Si la cuenta es Activo o Gastos, el saldo es Debe - Haber (saldo deudor).
-        if tipo_cuenta in ["Activo", "Gastos"]:
-            return self.debe - self.haber
-        # Si la cuenta es Pasivo, Patrimonio o Ventas, el saldo es Haber - Debe (saldo acreedor).
-        elif tipo_cuenta in ["Pasivo", "Patrimonio", "Ventas"]:
-            return self.haber - self.debe
-        else:
-            return 0.00  # Si no se reconoce el tipo de cuenta, se devuelve saldo 0.
-
     def __str__(self):
-        return f"Transacción {self.transaccion.id} - Cuenta {self.cuenta.codigo}: Debe {self.debe}, Haber {self.haber}"
+        return f"Transacción {self.transaccion.id_transaccion} - Cuenta {self.cuenta.codigo}: Debe {self.debe}, Haber {self.haber}"
 
 
 class CostosIndirectos(models.Model):

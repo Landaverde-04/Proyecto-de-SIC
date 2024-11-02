@@ -21,10 +21,11 @@
                 </label>
                 <nav class="navbar">
                     <ul>
-                        <li><a href="{% url 'catalogo_cuentas' %}">Catalogo de cuentas</a></li>
-                        <li><a href="">Reportes contables</a></li>
+                        <li><a href="{% url 'catalogo_cuentas' %}">Catálogo de Cuentas</a></li>
+                        <li><a href="{% url 'libro_mayor' %}">Libro Mayor</a></li> <!-- Nuevo botón de Libro Mayor -->
                         <li><a href="{% url 'transacciones' %}">Transacciones</a></li>
-                        <li><a href="">Metodos de costeo</a></li>
+                        <li><a href="">Métodos de Costeo</a></li>
+                        <li><a href="">Reportes Contables</a></li>
                     </ul>
                 </nav>
             </div>
@@ -35,29 +36,41 @@
     <br>
     <h1>Catálogo de Cuentas</h1>
     
+    <!-- Filtros y búsqueda avanzada -->
+    <div class="filter-container">
+        <label for="tipoCuenta">Filtrar por Tipo de Cuenta:</label>
+        <select id="tipoCuenta" onchange="filtrarCuentas()">
+            <option value="">Todos</option>
+            <option value="1">Activo</option>
+            <option value="2">Pasivo</option>
+            <option value="3">Patrimonio</option>
+            <option value="4">Cuentas de Resultado Deudoras</option>
+            <option value="5">Cuentas de Resultado Acreedoras</option>
+        </select>
+        
+        <label for="busqueda">Buscar:</label>
+        <input type="text" id="busqueda" onkeyup="buscarCuentas()" placeholder="Buscar por código o nombre">
+
+        <button onclick="restablecerFiltros()">Restablecer</button>
+    </div>
+
     <table>
         <thead>
             <tr>
                 <th>Código</th>
-                <th>Nombre</th>
-                <th>Editar</th>                
+                <th>Nombre</th>                
             </tr>
         </thead>
-        <tbody>
+        <tbody id="tablaCuentas">
             <!-- Recorrer las cuentas y mostrarlas en la tabla -->
             {% for cuenta in cuentas %}
-            <tr>
+            <tr data-codigo="{{ cuenta.codigo }}" data-nombre="{{ cuenta.nombre }}" data-tipo="{{ cuenta.codigo|slice:":1" }}">
                 <td>{{ cuenta.codigo }}</td>
                 <td>{{ cuenta.nombre }}</td>
-                <td class="action-cell">
-                    <a href="{% url 'editar_cuenta' cuenta.pk %}" class="icon-button">
-                        <i class="fas fa-pencil-alt"></i> <!-- Icono de lápiz para editar -->
-                    </a>
-                </td>                
             </tr>
             {% empty %}
             <tr>
-                <td colspan="4">No hay cuentas registradas.</td>
+                <td colspan="2">No hay cuentas registradas.</td>
             </tr>
             {% endfor %}
         </tbody>
@@ -65,8 +78,54 @@
     <br>
     <!-- Botón para registrar una nueva cuenta -->
     <a href="{% url 'nueva_cuenta' %}"><button class="menu-button">Registrar Nueva Cuenta</button></a>    
+
+    <!-- JavaScript para búsqueda en tiempo real y filtros -->
+    <script>
+        function buscarCuentas() {
+            const query = document.getElementById("busqueda").value.toLowerCase();
+            const filas = document.querySelectorAll("#tablaCuentas tr");
+
+            filas.forEach(fila => {
+                const codigo = fila.dataset.codigo.toLowerCase();
+                const nombre = fila.dataset.nombre.toLowerCase();
+
+                if (codigo.includes(query) || nombre.includes(query)) {
+                    fila.style.display = "";
+                } else {
+                    fila.style.display = "none";
+                }
+            });
+        }
+
+        function filtrarCuentas() {
+            const tipo = document.getElementById("tipoCuenta").value;
+            const filas = document.querySelectorAll("#tablaCuentas tr");
+
+            filas.forEach(fila => {
+                const tipoCuenta = fila.dataset.tipo;
+
+                if (tipo === "" || tipoCuenta === tipo) {
+                    fila.style.display = "";
+                } else {
+                    fila.style.display = "none";
+                }
+            });
+        }
+
+        function restablecerFiltros() {
+            document.getElementById("busqueda").value = "";
+            document.getElementById("tipoCuenta").value = "";
+            const filas = document.querySelectorAll("#tablaCuentas tr");
+
+            filas.forEach(fila => {
+                fila.style.display = "";
+            });
+        }
+    </script>
 </body>
 </html>
+
+
 
 
 
