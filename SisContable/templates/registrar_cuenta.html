@@ -33,12 +33,10 @@
                 </label>
                 <nav class="navbar">
                     <ul>
-                        <li><a href="{% url 'catalogo_cuentas' %}" onclick="confirmarRegresar(event)">Catalogo de cuentas</a></li>
-                        <li><a href=""onclick="confirmarRegresar(event)">Reportes contables</a></li>
+                        <li><a href="{% url 'catalogo_cuentas' %}" onclick="confirmarRegresar(event)">Catálogo de Cuentas</a></li>                        
                         <li><a href="{% url 'transacciones' %}"onclick="confirmarRegresar(event)">Transacciones</a></li>
-                        <li><a href="{% url 'libro_mayor' %}">Libro Mayor</a></li> <!-- Nuevo botón de Libro Mayor -->
-                        <li><a href=""onclick="confirmarRegresar(event)">Metodos de costeo</a></li>
-                        
+                        <li><a href="{% url 'metodos-costeo' %}"onclick="confirmarRegresar(event)">Métodos de Costeo</a></li>
+                        <li><a href="{% url 'reportes_contables' %}"onclick="confirmarRegresar(event)">Reportes Contables</a></li>                        
                     </ul>
                 </nav>
             </div>

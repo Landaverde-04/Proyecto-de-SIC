@@ -21,24 +21,21 @@
                 </label>
                 <nav class="navbar">
                     <ul>
-                        <li><a href="{% url 'catalogo_cuentas' %}">Catálogo de Cuentas</a></li>
-                        <li><a href="{% url 'libro_mayor' %}">Libro Mayor</a></li> <!-- Nuevo botón de Libro Mayor -->
+                        <li><a href="{% url 'catalogo_cuentas' %}">Catálogo de Cuentas</a></li>                        
                         <li><a href="{% url 'transacciones' %}">Transacciones</a></li>
-                        <li><a href="">Métodos de Costeo</a></li>
-                        <li><a href="">Reportes Contables</a></li>
+                        <li><a href="{% url 'metodos-costeo' %}">Métodos de Costeo</a></li>
+                        <li><a href="{% url 'reportes_contables' %}">Reportes Contables</a></li>
                     </ul>
                 </nav>
             </div>
         </div>
     </header>  
 </body>
-<body>
+<body class="body-catalogo">
     <br>
     <h1>Catálogo de Cuentas</h1>
-    
-    <!-- Filtros y búsqueda avanzada -->
-    <div class="filter-container">
-        <label for="tipoCuenta">Filtrar por Tipo de Cuenta:</label>
+    <div class="table-container">
+        <label for="tipoCuenta">Tipo de Cuenta:</label>
         <select id="tipoCuenta" onchange="filtrarCuentas()">
             <option value="">Todos</option>
             <option value="1">Activo</option>
@@ -51,14 +48,12 @@
         <label for="busqueda">Buscar:</label>
         <input type="text" id="busqueda" onkeyup="buscarCuentas()" placeholder="Buscar por código o nombre">
 
-        <button onclick="restablecerFiltros()">Restablecer</button>
-    </div>
-
-    <table>
+        <button class="button-restablecer" onclick="restablecerFiltros()">Restablecer</button>
+    <table class="tabla">
         <thead>
             <tr>
                 <th>Código</th>
-                <th>Nombre</th>                
+                <th class="fil-nombre">Nombre</th>                
             </tr>
         </thead>
         <tbody id="tablaCuentas">
@@ -77,8 +72,8 @@
     </table>
     <br>
     <!-- Botón para registrar una nueva cuenta -->
-    <a href="{% url 'nueva_cuenta' %}"><button class="menu-button">Registrar Nueva Cuenta</button></a>    
-
+    <a href="{% url 'nueva_cuenta' %}"><button class="menu-button">Nueva Cuenta</button></a>    
+    </div>
     <!-- JavaScript para búsqueda en tiempo real y filtros -->
     <script>
         function buscarCuentas() {

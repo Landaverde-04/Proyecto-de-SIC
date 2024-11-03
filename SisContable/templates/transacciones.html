@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     {% load static %}    
     <link rel="stylesheet" href="{% static 'menu.css' %}">
+    <link rel="stylesheet" href="{% static 'transacciones.css' %}">
     <!-- Enlace a Font Awesome para utilizar el ícono de ojo -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <title>Transacciones</title>
@@ -20,26 +21,26 @@
                 </label>
                 <nav class="navbar">
                     <ul>
-                        <li><a href="{% url 'catalogo_cuentas' %}">Catálogo de Cuentas</a></li>
-                        <li><a href="{% url 'libro_mayor' %}">Libro Mayor</a></li> 
+                        <li><a href="{% url 'catalogo_cuentas' %}">Catálogo de Cuentas</a></li>                        
                         <li><a href="{% url 'transacciones' %}">Transacciones</a></li>
-                        <li><a href="">Métodos de Costeo</a></li>
-                        <li><a href="">Reportes Contables</a></li>
+                        <li><a href="{% url 'metodos-costeo' %}">Métodos de Costeo</a></li>
+                        <li><a href="{% url 'reportes_contables' %}">Reportes Contables</a></li>
                     </ul>
                 </nav>
             </div>
         </div>
     </header>
-
+</body>
+<body>    
     <h1>Gestión de Transacciones</h1>
-
+    <div class="div-tabla">
     <!-- Tabla de transacciones -->
-    <table border="1">
+    <table class="tabla" border="1">
         <thead>
             <tr>
-                <th>Código de Transacción</th>
+                <th class="codigo">Código de Transacción</th>
                 <th>Fecha</th>
-                <th>Detalles</th>
+                <th>Detalle</th>
             </tr>
         </thead>
         <tbody>
@@ -66,6 +67,7 @@
     <a href="{% url 'nueva_transaccion' %}">
         <button>Nueva Transacción</button>
     </a>
+</div>
 </body>
 </html>
 

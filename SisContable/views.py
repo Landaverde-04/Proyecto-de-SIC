@@ -220,3 +220,10 @@ def api_libro_mayor(request):
 
     # Devolver los datos en formato JSON
     return JsonResponse({'movimientos': movimientos_data})
+
+def metodos_costeo(request):
+    return render(request, 'metodos-costeo.html')
+
+def reportes_contables(request):
+    return render(request, 'reportes_contables.html')
+

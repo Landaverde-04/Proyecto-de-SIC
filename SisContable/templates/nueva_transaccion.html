@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     {% load static %}    
     <link rel="stylesheet" href="{% static 'menu.css' %}">
+    <link rel="stylesheet" href="{% static 'nueva_transaccion.css' %}">
     <title>Nueva Transacción</title>
     <script>
         // Función para calcular la sumatoria de Debe y Haber
@@ -57,19 +58,19 @@
                 </label>
                 <nav class="navbar">
                     <ul>
-                        <li><a href="{% url 'catalogo_cuentas' %}">Catalogo de cuentas</a></li>
-                        <li><a href="">Reportes contables</a></li>
+                        <li><a href="{% url 'catalogo_cuentas' %}">Catalogo de cuentas</a></li>                        
                         <li><a href="{% url 'transacciones' %}">Transacciones</a></li>
-                        <li><a href="">Metodos de costeo</a></li>
+                        <li><a href="{% url 'metodos-costeo' %}">Métodos de Costeo</a></li>
+                        <li><a href="{% url 'reportes_contables' %}">Reportes Contables</a></li>
                     </ul>
                 </nav>
             </div>
         </div>
     </header>  
 </body>
-<body>
+<body>    
+    <div class="div-tabla">
     <h1>Registrar Nueva Transacción</h1>
-
     <form method="post" onsubmit="return validarPartidaDoble();">
         {% csrf_token %}
         
@@ -83,7 +84,9 @@
         <!-- Detalles de la transacción -->
         <fieldset>
             <legend>Detalles de la Transacción</legend>
+            <div class="fecha-div">
             {{ transaccion_form.as_p }} 
+        </div>
         </fieldset>
 
         <!-- Formulario de cuentas asociadas -->
@@ -95,9 +98,9 @@
             <table border="1" id="tablaCuentas">
                 <thead>
                     <tr>
-                        <th>Nombre de Cuenta</th>
-                        <th>Debe</th>
-                        <th>Haber</th>
+                        <th class="nombre-th">Nombre de Cuenta</th>
+                        <th class="debe">Debe</th>
+                        <th class="haber">Haber</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -111,20 +114,22 @@
                 </tbody>
                 <tfoot>
                     <tr>
-                        <td>Total:</td>
-                        <td id="totalDebe">0.00</td>
-                        <td id="totalHaber">0.00</td>
+                        <td class="total-td">Total:</td>
+                        <td id="totalDebe">0</td>
+                        <td id="totalHaber">0</td>
                     </tr>
                 </tfoot>
             </table>
         </fieldset>
 
         <button type="submit">Guardar Transacción</button>
+        <a href="{% url 'transacciones' %}">
+            <button type="button">Regresar</button>
+        </a>
     </form>
 
-    <a href="{% url 'transacciones' %}">
-        <button type="button">Regresar</button>
-    </a>
+    
+</div>
 </body>
 </html>
 

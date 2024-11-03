@@ -20,11 +20,10 @@
                 </label>
                 <nav class="navbar">
                     <ul>
-                        <li><a href="{% url 'catalogo_cuentas' %}">Catálogo de Cuentas</a></li>
-                        <li><a href="{% url 'libro_mayor' %}">Libro Mayor</a></li> 
+                        <li><a href="{% url 'catalogo_cuentas' %}">Catálogo de Cuentas</a></li>                         
                         <li><a href="{% url 'transacciones' %}">Transacciones</a></li>
-                        <li><a href="">Métodos de Costeo</a></li>
-                        <li><a href="">Reportes Contables</a></li>
+                        <li><a href="{% url 'metodos-costeo' %}">Métodos de Costeo</a></li>
+                        <li><a href="{% url 'reportes_contables' %}">Reportes Contables</a></li>
                     </ul>
                 </nav>
             </div>

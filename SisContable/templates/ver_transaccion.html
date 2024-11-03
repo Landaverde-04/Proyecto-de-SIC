@@ -6,7 +6,7 @@
     {% load static %}
     <title>Detalle de Transacción</title>
     <link rel="stylesheet" href="{% static 'menu.css' %}">
-    <link rel="stylesheet" href="{% static 'styles.css' %}">
+    <link rel="stylesheet" href="{% static 'ver_transaccion.css' %}">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
 </head>
 <body class="cuerpo">
@@ -20,29 +20,26 @@
                 </label>
                 <nav class="navbar">
                     <ul>
-                        <li><a href="{% url 'catalogo_cuentas' %}">Catálogo de Cuentas</a></li>
-                        <li><a href="{% url 'libro_mayor' %}">Libro Mayor</a></li> 
+                        <li><a href="{% url 'catalogo_cuentas' %}">Catálogo de Cuentas</a></li>                         
                         <li><a href="{% url 'transacciones' %}">Transacciones</a></li>
-                        <li><a href="">Métodos de Costeo</a></li>
-                        <li><a href="">Reportes Contables</a></li>
+                        <li><a href="{% url 'metodos-costeo' %}">Métodos de Costeo</a></li>
+                        <li><a href="{% url 'reportes_contables' %}">Reportes Contables</a></li>
                     </ul>
                 </nav>
             </div>
         </div>
     </header>
-
+</body>
+<body class="body-transaccion">
+    <div class="div-transaccion">
     <h1>Detalle de Transacción</h1>
-
-    <!-- Mostrar la fecha de la transacción -->
-    <p><strong>Fecha:</strong> {{ transaccion.fecha }}</p>
-
     <!-- Tabla de movimientos de la transacción -->
-    <table border="1">
+    <table class="tabla" border="1">
         <thead>
             <tr>
                 <th>Fecha</th>
-                <th>Número de Transacción</th>
-                <th>Descripción</th>
+                <th class="th-numero-transaccion">N° de Transacción</th>
+                <th>Cuenta</th>
                 <th>Debe</th>
                 <th>Haber</th>
             </tr>
@@ -60,7 +57,7 @@
         </tbody>
         <tfoot>
             <tr>
-                <td colspan="3"><strong>Total:</strong></td>
+                <td colspan="3"><strong>TOTAL:</strong></td>
                 <td id="totalDebe">0.00</td>
                 <td id="totalHaber">0.00</td>
             </tr>
@@ -69,9 +66,10 @@
 
     <!-- Botón de regreso al inicio -->
     <br>
-    <a href="{% url 'inicio' %}">
-        <button type="button">Regresar al Inicio</button>
-    </a>
+    <a href="{% url 'transacciones' %}">
+        <button type="button">Regresar</button>
+    </a
+    </div>
 
     <!-- JavaScript para calcular totales de Debe y Haber dinámicamente -->
     <script>
@@ -92,6 +90,7 @@
             document.getElementById("totalHaber").innerText = totalHaber.toFixed(2);
         });
     </script>
+    
 </body>
 </html>
 
