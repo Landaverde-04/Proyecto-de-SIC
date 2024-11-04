@@ -2,8 +2,8 @@ import datetime
 from django.forms import ValidationError, inlineformset_factory
 from django.http import JsonResponse
 from django.urls import reverse_lazy
-from django.db.models import Sum
-from django.db import transaction
+from django.db.models import Sum, F, Case, When, Value, DecimalField
+from django.db import transaction, models
 from django.shortcuts import render, redirect, get_object_or_404
 from .models import Cuenta, Transaccion, Movimiento
 from .forms import CuentaForm, LibroMayorFiltroForm, TransaccionForm, MovimientoForm, MovimientoFormSet
@@ -227,3 +227,37 @@ def metodos_costeo(request):
 def reportes_contables(request):
     return render(request, 'reportes_contables.html')
 
+def balance_general(request):
+    # Filtrar cuentas de Activo, Pasivo y Patrimonio individualmente y luego unir las consultas
+    activos = Cuenta.objects.filter(codigo__startswith='1')
+    pasivos = Cuenta.objects.filter(codigo__startswith='2')
+    patrimonio = Cuenta.objects.filter(codigo__startswith='3')
+
+    # Concatenar los tres QuerySets en una lista de cuentas
+    cuentas_balance = list(activos) + list(pasivos) + list(patrimonio)
+
+    # Anotar Debe y Haber para cada cuenta según el tipo
+    for cuenta in cuentas_balance:
+        if cuenta.codigo.startswith('1'):  # Activos
+            cuenta.debe = cuenta.saldo
+            cuenta.haber = 0
+        elif cuenta.codigo.startswith('2') or cuenta.codigo.startswith('3'):  # Pasivos y Patrimonio
+            cuenta.debe = 0
+            cuenta.haber = cuenta.saldo
+
+    # Calcular el total de Debe y Haber
+    total_debe = sum(cuenta.debe for cuenta in cuentas_balance)
+    total_haber = sum(cuenta.haber for cuenta in cuentas_balance)
+
+    # Calcular la diferencia entre Haber y Debe
+    resultado_final = total_haber - total_debe
+    es_utilidad = resultado_final > 0  # Si es positivo, es utilidad; si no, es pérdida
+
+    context = {
+        'cuentas_balance': cuentas_balance,
+        'total_debe': total_debe,
+        'total_haber': total_haber,
+        'resultado_final': abs(resultado_final),  # Mostrar siempre el valor absoluto
+        'es_utilidad': es_utilidad,
+    }
+    return render(request, 'balance_general.html', context)

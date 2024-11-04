@@ -1,11 +1,11 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="es">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     {% load static %}
     <link rel="stylesheet" href="{% static 'menu.css' %}">
-    <title>Reportes contables</title>
+    <title>Balance General</title>
 </head>
 <body class="cuerpo">
     <header class="contenedor">
@@ -31,8 +31,36 @@
     </header>  
 </body>
 <body>
-    <h1>Reportes</h1>
-    <li><a href="{% url 'libro_mayor' %}">Libro Mayor</a></li>
-    <li><a href="{% url 'balance_general' %}">Balance General</a></li>
+    <h1>Balance General</h1>
+
+    <table border="1">
+        <thead>
+            <tr>
+                <th>Código</th>
+                <th>Nombre de la Cuenta</th>
+                <th>Debe</th>
+                <th>Haber</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for cuenta in cuentas_balance %}
+            <tr>
+                <td>{{ cuenta.codigo }}</td>
+                <td>{{ cuenta.nombre }}</td>
+                <td>{{ cuenta.debe }}</td>
+                <td>{{ cuenta.haber }}</td>
+            </tr>
+            {% endfor %}
+            <!-- Fila para los totales de Debe y Haber -->
+            <tr>
+                <td colspan="2"><strong>Total</strong></td>
+                <td><strong>{{ total_debe }}</strong></td>
+                <td><strong>{{ total_haber }}</strong></td>
+            </tr>            
+        </tbody>
+    </table>
+    <a href="{% url 'reportes_contables' %}">
+        <button type="button">Regresar</button>
+    </a>
 </body>
 </html>
