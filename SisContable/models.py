@@ -2,6 +2,12 @@ from django.db import models
 from django.core.exceptions import ValidationError
 from django.db.models import Sum
 
+VACACIONES_DIAS = 15
+AGUINALDO_DIAS = 19
+AFP = 0.0775
+SEGURO_SOCIAL = 0.075
+ICAF = 0.01
+
 class Cuenta(models.Model):
     codigo = models.CharField(max_length=6, unique=True)
     nombre = models.CharField(max_length=100)
@@ -79,101 +85,96 @@ class Movimiento(models.Model):
         return f"Transacción {self.transaccion.id_transaccion} - Cuenta {self.cuenta.codigo}: Debe {self.debe}, Haber {self.haber}"
 
 
+
+# Modelo de Costos Indirectos (CI)
 class CostosIndirectos(models.Model):
     nombre_costo = models.CharField(max_length=100)
-    monto = models.DecimalField(max_digits=12, decimal_places=2)
-    cuenta_asociada = models.ForeignKey(Cuenta, null=True, blank=True, on_delete=models.SET_NULL)
+    monto_mensual = models.DecimalField(max_digits=12, decimal_places=2)
 
-    # Método para calcular el costo diario (monto / 30).
     def calcular_costo_diario(self):
-        if self.monto > 0:
-            return self.monto / 30
-        return 0.00  # Si no se especificó monto, devolver 0.
+        # Costo diario es el mensual dividido por 30 días
+        return self.monto_mensual / 30
 
-    # Método para calcular el costo semanal (costo diario * 7).
     def calcular_costo_semanal(self):
-        costo_diario = self.calcular_costo_diario()
-        if costo_diario > 0:
-            return costo_diario * 7
-        return 0.00  # Si no se puede calcular el costo diario, devolver 0.
+        # Costo semanal es el diario multiplicado por 5.5 días de trabajo
+        return self.calcular_costo_diario() * 5.5
 
-    # Método para calcular el costo por hora (costo semanal / 44).
     def calcular_costo_por_hora(self):
-        costo_semanal = self.calcular_costo_semanal()
-        if costo_semanal > 0:
-            return costo_semanal / 44
-        return 0.00  # Si no se puede calcular el costo semanal, devolver 0.
+        # Costo por hora es el semanal dividido entre 44 horas laborales
+        return self.calcular_costo_semanal() / 44
 
     def __str__(self):
-        return f"{self.nombre_costo} - Monto: {self.monto}"
+        return f"{self.nombre_costo} - Monto mensual: {self.monto_mensual}"
 
-class Puesto(models.Model):
+
+# Modelo de Costos Directos (CD)
+class CostosDirectos(models.Model):
     nombre_puesto = models.CharField(max_length=100)
-    salario_puesto = models.DecimalField(max_digits=12, decimal_places=2)
-    cantidad = models.IntegerField(default=1)
-    salarios = models.ForeignKey(Cuenta, null=True, blank=True, on_delete=models.SET_NULL)
+    salario_mensual = models.DecimalField(max_digits=12, decimal_places=2)
+    cantidad_empleados = models.IntegerField(default=1)
 
-    # Método para calcular el salario diario (salario / 30).
     def calcular_salario_diario(self):
-        return self.salario_puesto / 30
+        # Salario diario derivado del salario semanal
+        return self.calcular_salario_semanal() / 5.5
 
-    # Método para calcular el salario semanal (salario diario * 7).
     def calcular_salario_semanal(self):
-        return self.calcular_salario_diario() * 7
+        # Salario semanal a partir del mensual
+        return (self.salario_mensual / 30) * 7
 
-    # Método para calcular el salario por hora (salario semanal / 44).
     def calcular_salario_por_hora(self):
+        # Salario por hora a partir del salario semanal
         return self.calcular_salario_semanal() / 44
 
-    # Método para calcular el aguinaldo anual (salario diario * 25).
     def calcular_aguinaldo_anual(self):
-        return self.calcular_salario_diario() * 25
+        return (self.salario_mensual / 30) * AGUINALDO_DIAS
 
-    # Método para calcular el aguinaldo mensual (aguinaldo anual / 12).
-    def calcular_aguinaldo_mensual(self):
-        return self.calcular_aguinaldo_anual() / 12
-
-    # Método para calcular las vacaciones anuales ((salario diario * 25) * 1.40).
     def calcular_vacaciones_anual(self):
-        return (self.calcular_salario_diario() * 25) * 1.40
+        return (self.salario_mensual / 30) * VACACIONES_DIAS
 
-    # Método para calcular las vacaciones mensuales (vacaciones anuales / 12).
-    def calcular_vacaciones_mensual(self):
-        return self.calcular_vacaciones_anual() / 12
-
-    # Método para calcular el AFP (salario mensual + vacaciones mensual) * 0.0775.
     def calcular_afp(self):
-        salario_mensual = self.salario_puesto
-        vacaciones_mensual = self.calcular_vacaciones_mensual()
-        return (salario_mensual + vacaciones_mensual) * 0.0775
+        # AFP sobre salario mensual más vacaciones mensuales
+        return (self.salario_mensual + (self.calcular_vacaciones_anual() / 12)) * AFP
 
-    # Método para calcular el Seguro Social (salario mensual + vacaciones mensual) * 0.075.
     def calcular_seguro_social(self):
-        salario_mensual = self.salario_puesto
-        vacaciones_mensual = self.calcular_vacaciones_mensual()
-        return (salario_mensual + vacaciones_mensual) * 0.075
+        # Seguro Social sobre salario mensual más vacaciones mensuales
+        return (self.salario_mensual + (self.calcular_vacaciones_anual() / 12)) * SEGURO_SOCIAL
 
-    # Método para calcular el ICAF (salario mensual + vacaciones mensual) * 0.01.
     def calcular_icaf(self):
-        salario_mensual = self.salario_puesto
-        vacaciones_mensual = self.calcular_vacaciones_mensual()
-        return (salario_mensual + vacaciones_mensual) * 0.01
+        # ICAF sobre salario mensual más vacaciones mensuales
+        return (self.salario_mensual + (self.calcular_vacaciones_anual() / 12)) * ICAF
 
-    # Método para calcular el salario total mensual.
-    # Salario total mensual = salario mensual + aguinaldo mensual + vacaciones mensual + AFP + Seguro + ICAF.
     def calcular_salario_total_mensual(self):
-        salario_mensual = self.salario_puesto
-        aguinaldo_mensual = self.calcular_aguinaldo_mensual()
-        vacaciones_mensual = self.calcular_vacaciones_mensual()
-        afp = self.calcular_afp()
-        seguro_social = self.calcular_seguro_social()
-        icaf = self.calcular_icaf()
+        # Salario total considerando beneficios
+        return (self.salario_mensual + 
+                (self.calcular_aguinaldo_anual() / 12) + 
+                (self.calcular_vacaciones_anual() / 12) +
+                self.calcular_afp() + 
+                self.calcular_seguro_social() + 
+                self.calcular_icaf())
 
-        return salario_mensual + aguinaldo_mensual + vacaciones_mensual + afp + seguro_social + icaf
-
-    # Método para calcular el salario total considerando la cantidad de puestos.
     def calcular_salario_total_por_cantidad(self):
-        return self.calcular_salario_total_mensual() * self.cantidad
+        # Total salario mensual por la cantidad de empleados
+        return self.calcular_salario_total_mensual() * self.cantidad_empleados
 
     def __str__(self):
-        return f"{self.nombre_puesto} - Salario: {self.salario_puesto} - Cantidad: {self.cantidad}"
+        return f"{self.nombre_puesto} - Salario: {self.salario_mensual} - Cantidad: {self.cantidad_empleados}"
+
+
+class Proyecto(models.Model):
+    id_proyecto = models.DecimalField(max_digits=10, decimal_places=2, unique=True)  # ID decimal para el proyecto
+    nombre_proyecto = models.CharField(max_length=200)
+    cd = models.ManyToManyField(CostosDirectos, related_name='proyectos')
+    ci = models.ManyToManyField(CostosIndirectos, related_name='proyectos')
+    duracion = models.FloatField()  # Duración en meses
+    total_cd = models.DecimalField(max_digits=15, decimal_places=2, blank=True, null=True)
+    total_ci = models.DecimalField(max_digits=15, decimal_places=2, blank=True, null=True)
+    esfuerzo = models.FloatField()  # Esfuerzo estimado en horas/persona
+    productividad = models.FloatField()  # Productividad en puntos de función/persona
+    punto_de_funcion = models.FloatField()  # Puntos de función del proyecto
+    total_empleado = models.IntegerField()  # Total de empleados asignados
+
+    # (Los métodos del modelo siguen siendo los mismos...)
+
+    def __str__(self):
+        return f"Proyecto {self.id_proyecto} - {self.nombre_proyecto}"
+    
