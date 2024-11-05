@@ -1,7 +1,7 @@
 from django.contrib import admin
-from .models import CostosDirectos, Cuenta, CostosIndirectos
+from .models import CostoDirecto, Cuenta, CostoIndirecto
 
 
-admin.site.register(CostosDirectos)
+admin.site.register(CostoDirecto)
 admin.site.register(Cuenta)
-admin.site.register(CostosIndirectos)
+admin.site.register(CostoIndirecto)

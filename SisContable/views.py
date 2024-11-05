@@ -4,9 +4,10 @@ from django.http import JsonResponse
 from django.urls import reverse_lazy
 from django.db.models import Sum, F, Case, When, Value, DecimalField
 from django.db import transaction, models
+from django.contrib import messages
 from django.shortcuts import render, redirect, get_object_or_404
-from .models import Cuenta, Transaccion, Movimiento
-from .forms import CuentaForm, LibroMayorFiltroForm, TransaccionForm, MovimientoForm, MovimientoFormSet
+from .models import Cuenta, Transaccion, Movimiento,Proyecto, CostoDirecto, CostoIndirecto
+from .forms import CuentaForm, LibroMayorFiltroForm, TransaccionForm, MovimientoForm, MovimientoFormSet,ProyectoForm, CostoDirectoForm, CostoIndirectoForm
 
 # Vista para la página de inicio
 def inicio(request):
@@ -261,3 +262,75 @@ def balance_general(request):
         'es_utilidad': es_utilidad,
     }
     return render(request, 'balance_general.html', context)
+
+def metodos_costeo(request):
+    # Obtener todos los proyectos
+    proyectos = Proyecto.objects.all()
+    
+    # Obtener todos los costos directos e indirectos
+    costos_directos = CostoDirecto.objects.all()
+    costos_indirectos = CostoIndirecto.objects.all()
+    
+    # Calcular el total de costos directos e indirectos
+    total_costos_directos = sum(cd.total_con_prestaciones for cd in costos_directos)
+    total_costos_indirectos = sum(ci.monto for ci in costos_indirectos)
+
+    # Formularios para agregar costos directos e indirectos
+    form_ci = CostoIndirectoForm()
+    form_cd = CostoDirectoForm()
+
+    # Pasar los datos al contexto
+    context = {
+        'proyectos': proyectos,
+        'costos_directos': costos_directos,
+        'costos_indirectos': costos_indirectos,
+        'total_costos_directos': total_costos_directos,
+        'total_costos_indirectos': total_costos_indirectos,
+        'form_ci': form_ci,
+        'form_cd': form_cd,
+    }
+    return render(request, 'metodos-costeo.html', context)
+
+def crear_costo_indirecto_ajax(request):
+    if request.method == 'POST':
+        form = CostoIndirectoForm(request.POST)
+        nombre = request.POST.get('nombre')
+        # Verificar si el costo indirecto ya existe
+        if CostoIndirecto.objects.filter(nombre=nombre).exists():
+            return JsonResponse({'success': False, 'error': 'duplicate'}, status=400)
+        
+        if form.is_valid():
+            costo = form.save()
+            return JsonResponse({
+                'success': True,
+                'costo': {
+                    'nombre': costo.nombre,
+                    'descripcion': costo.descripcion,
+                    'monto': costo.monto
+                }
+            })
+        else:
+            return JsonResponse({'success': False, 'errors': form.errors}, status=400)
+    return JsonResponse({'success': False}, status=400)
+
+def nuevo_proyecto(request):
+    if request.method == 'POST':
+        form = ProyectoForm(request.POST)
+        if form.is_valid():
+            proyecto = form.save(commit=False)
+            
+            # Asegurarse de calcular y guardar en el orden correcto
+            proyecto.calcular_esfuerzo_total()
+            proyecto.calcular_duracion_total()
+            proyecto.calcular_costo_total()
+
+            proyecto.save()
+            form.save_m2m()  # Guarda las relaciones Many-to-Many
+            
+            messages.success(request, 'Proyecto creado exitosamente.')
+            return redirect('metodos-costeo')
+        else:
+            messages.error(request, 'Hubo un error al crear el proyecto.')
+    else:
+        form = ProyectoForm()
+    return render(request, 'nuevo_proyecto.html', {'form': form})

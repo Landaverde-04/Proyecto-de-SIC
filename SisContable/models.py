@@ -1,3 +1,4 @@
+from decimal import Decimal
 from django.db import models
 from django.core.exceptions import ValidationError
 from django.db.models import Sum
@@ -85,96 +86,127 @@ class Movimiento(models.Model):
         return f"Transacción {self.transaccion.id_transaccion} - Cuenta {self.cuenta.codigo}: Debe {self.debe}, Haber {self.haber}"
 
 
+class CostoDirecto(models.Model):
+    nombre = models.CharField(max_length=100)
+    salario_mensual = models.DecimalField(max_digits=10, decimal_places=2)
+    cantidad_empleados = models.PositiveIntegerField(default=1)
 
-# Modelo de Costos Indirectos (CI)
-class CostosIndirectos(models.Model):
-    nombre_costo = models.CharField(max_length=100)
-    monto_mensual = models.DecimalField(max_digits=12, decimal_places=2)
+    # Porcentajes fijos como Decimal
+    PORCENTAJE_ISSS = Decimal('0.075')
+    PORCENTAJE_AFP = Decimal('0.0775')
+    PORCENTAJE_INCAF = Decimal('0.01')
 
-    def calcular_costo_diario(self):
-        # Costo diario es el mensual dividido por 30 días
-        return self.monto_mensual / 30
+    @property
+    def isss(self):
+        return self.salario_mensual * self.PORCENTAJE_ISSS
 
-    def calcular_costo_semanal(self):
-        # Costo semanal es el diario multiplicado por 5.5 días de trabajo
-        return self.calcular_costo_diario() * 5.5
+    @property
+    def afp(self):
+        return self.salario_mensual * self.PORCENTAJE_AFP
 
-    def calcular_costo_por_hora(self):
-        # Costo por hora es el semanal dividido entre 44 horas laborales
-        return self.calcular_costo_semanal() / 44
+    @property
+    def vacaciones(self):
+        # Convertimos 0.30 y 12 a Decimal para asegurar consistencia en el tipo
+        return ((self.salario_mensual / 2) + (self.salario_mensual / 2) * Decimal('0.30')) / Decimal('12')
 
-    def __str__(self):
-        return f"{self.nombre_costo} - Monto mensual: {self.monto_mensual}"
+    @property
+    def aguinaldo(self):
+        # Convertimos 30 y 19 a Decimal para asegurar consistencia en el tipo
+        return ((self.salario_mensual / Decimal('30')) * Decimal('19')) / Decimal('12')
 
+    @property
+    def incaf(self):
+        return self.salario_mensual * self.PORCENTAJE_INCAF
 
-# Modelo de Costos Directos (CD)
-class CostosDirectos(models.Model):
-    nombre_puesto = models.CharField(max_length=100)
-    salario_mensual = models.DecimalField(max_digits=12, decimal_places=2)
-    cantidad_empleados = models.IntegerField(default=1)
-
-    def calcular_salario_diario(self):
-        # Salario diario derivado del salario semanal
-        return self.calcular_salario_semanal() / 5.5
-
-    def calcular_salario_semanal(self):
-        # Salario semanal a partir del mensual
-        return (self.salario_mensual / 30) * 7
-
-    def calcular_salario_por_hora(self):
-        # Salario por hora a partir del salario semanal
-        return self.calcular_salario_semanal() / 44
-
-    def calcular_aguinaldo_anual(self):
-        return (self.salario_mensual / 30) * AGUINALDO_DIAS
-
-    def calcular_vacaciones_anual(self):
-        return (self.salario_mensual / 30) * VACACIONES_DIAS
-
-    def calcular_afp(self):
-        # AFP sobre salario mensual más vacaciones mensuales
-        return (self.salario_mensual + (self.calcular_vacaciones_anual() / 12)) * AFP
-
-    def calcular_seguro_social(self):
-        # Seguro Social sobre salario mensual más vacaciones mensuales
-        return (self.salario_mensual + (self.calcular_vacaciones_anual() / 12)) * SEGURO_SOCIAL
-
-    def calcular_icaf(self):
-        # ICAF sobre salario mensual más vacaciones mensuales
-        return (self.salario_mensual + (self.calcular_vacaciones_anual() / 12)) * ICAF
-
-    def calcular_salario_total_mensual(self):
-        # Salario total considerando beneficios
-        return (self.salario_mensual + 
-                (self.calcular_aguinaldo_anual() / 12) + 
-                (self.calcular_vacaciones_anual() / 12) +
-                self.calcular_afp() + 
-                self.calcular_seguro_social() + 
-                self.calcular_icaf())
-
-    def calcular_salario_total_por_cantidad(self):
-        # Total salario mensual por la cantidad de empleados
-        return self.calcular_salario_total_mensual() * self.cantidad_empleados
+    @property
+    def total_con_prestaciones(self):
+        # Calcula el salario total mensual con todas las prestaciones
+        total_prestaciones = (
+            self.salario_mensual + self.isss + self.afp + self.vacaciones + self.aguinaldo + self.incaf
+        )
+        return total_prestaciones * self.cantidad_empleados
 
     def __str__(self):
-        return f"{self.nombre_puesto} - Salario: {self.salario_mensual} - Cantidad: {self.cantidad_empleados}"
+        return self.nombre
+
+
+class CostoIndirecto(models.Model):
+    """Catálogo de costos indirectos"""
+    nombre = models.CharField(max_length=200)
+    descripcion = models.TextField(blank=True, null=True)
+    monto = models.DecimalField(max_digits=12, decimal_places=2)
+
+    def __str__(self):
+        return f"{self.nombre} - ${self.monto}"
 
 
 class Proyecto(models.Model):
-    id_proyecto = models.DecimalField(max_digits=10, decimal_places=2, unique=True)  # ID decimal para el proyecto
-    nombre_proyecto = models.CharField(max_length=200)
-    cd = models.ManyToManyField(CostosDirectos, related_name='proyectos')
-    ci = models.ManyToManyField(CostosIndirectos, related_name='proyectos')
-    duracion = models.FloatField()  # Duración en meses
-    total_cd = models.DecimalField(max_digits=15, decimal_places=2, blank=True, null=True)
-    total_ci = models.DecimalField(max_digits=15, decimal_places=2, blank=True, null=True)
-    esfuerzo = models.FloatField()  # Esfuerzo estimado en horas/persona
-    productividad = models.FloatField()  # Productividad en puntos de función/persona
-    punto_de_funcion = models.FloatField()  # Puntos de función del proyecto
-    total_empleado = models.IntegerField()  # Total de empleados asignados
+    nombre = models.CharField(max_length=200)
+    descripcion = models.TextField(blank=True, null=True)
+    puntos_funcion_total = models.PositiveIntegerField(help_text="Total de puntos de función del proyecto")
+    productividad = models.DecimalField(max_digits=5, decimal_places=2, help_text="Puntos de función por persona-hora")
+    
+    # Relaciones con los costos directos e indirectos
+    costos_directos = models.ManyToManyField('CostoDirecto', blank=True, related_name="proyectos_directos")
+    costos_indirectos = models.ManyToManyField('CostoIndirecto', blank=True, related_name="proyectos_indirectos")
 
-    # (Los métodos del modelo siguen siendo los mismos...)
+    # Campos calculados
+    duracion_total = models.DecimalField(max_digits=6, decimal_places=2, null=True, blank=True, help_text="Duración en meses")
+    esfuerzo_total = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True, help_text="Esfuerzo total en horas/persona")
+    costo_total = models.DecimalField(max_digits=12, decimal_places=2, null=True, blank=True, help_text="Costo total del proyecto")
+
+    def calcular_esfuerzo_total(self):
+        """Calcula el esfuerzo total del proyecto en horas/persona basado en puntos de función y productividad."""
+        if self.productividad > 0:
+            self.esfuerzo_total = Decimal(self.puntos_funcion_total) / self.productividad
+            self.save()
+        else:
+            self.esfuerzo_total = Decimal('0')
+        return self.esfuerzo_total
+
+    def calcular_total_empleados(self):
+        """Calcula el total de empleados sumando la cantidad de empleados en los costos directos asociados al proyecto."""
+        total_empleados = sum(costo_directo.cantidad_empleados for costo_directo in self.costos_directos.all())
+        print(f"Total de empleados calculado: {total_empleados}")  # Depuración
+        return total_empleados
+
+    def calcular_duracion_total(self):
+        """Calcula la duración total del proyecto en meses, dividiendo el esfuerzo total entre el número de empleados."""
+        total_empleados = self.calcular_total_empleados()
+        if total_empleados > 0 and self.esfuerzo_total > 0:
+            # 160 asume 160 horas laborales en un mes
+            self.duracion_total = self.esfuerzo_total / Decimal(total_empleados) 
+            print(f"Duración total calculada: {self.duracion_total}")  # Depuración
+            self.save()
+        else:
+            self.duracion_total = Decimal('0')
+            print("Duración total establecida en 0 debido a total_empleados o esfuerzo_total siendo 0")  # Depuración
+        return self.duracion_total
+
+    def calcular_total_salarios_cd(self):
+        """Calcula el total de salarios de los costos directos asociados al proyecto por mes."""
+        return sum(cd.total_con_prestaciones for cd in self.costos_directos.all())
+
+    def calcular_total_costos_directos(self):
+        """Calcula el total de costos directos (CDtotal) para la duración del proyecto."""
+        if self.duracion_total:
+            return self.calcular_total_salarios_cd() * self.duracion_total
+        return Decimal('0')
+
+    def calcular_total_costos_indirectos(self):
+        """Calcula el total de costos indirectos (CItotal) para la duración del proyecto."""
+        total_indirectos = sum(ci.monto for ci in self.costos_indirectos.all())
+        if self.duracion_total:
+            return total_indirectos * self.duracion_total
+        return Decimal('0')
+
+    def calcular_costo_total(self):
+        """Calcula el costo total del proyecto como la suma de costos directos e indirectos."""
+        CDtotal = self.calcular_total_costos_directos()
+        CItotal = self.calcular_total_costos_indirectos()
+        self.costo_total = CDtotal + CItotal
+        self.save()
+        return self.costo_total
 
     def __str__(self):
-        return f"Proyecto {self.id_proyecto} - {self.nombre_proyecto}"
-    
+        return self.nombre
