@@ -2,12 +2,12 @@ import datetime
 from django.forms import ValidationError, inlineformset_factory
 from django.http import JsonResponse
 from django.urls import reverse_lazy
-from django.db.models import Sum, F, Case, When, Value, DecimalField
+from django.db.models import Sum, F, Case, When, Value, DecimalField, Q
 from django.db import transaction, models
 from django.contrib import messages
 from django.shortcuts import render, redirect, get_object_or_404
 from .models import Cuenta, Transaccion, Movimiento,Proyecto, CostoDirecto, CostoIndirecto
-from .forms import CuentaForm, LibroMayorFiltroForm, TransaccionForm, MovimientoForm, MovimientoFormSet,ProyectoForm, CostoDirectoForm, CostoIndirectoForm
+from .forms import CuentaForm, LibroMayorFiltroForm, TransaccionForm, MovimientoForm, MovimientoFormSet,ProyectoForm, CostoDirectoForm, CostoIndirectoForm, FechaFiltroForm
 
 # Vista para la página de inicio
 def inicio(request):
@@ -334,3 +334,88 @@ def nuevo_proyecto(request):
     else:
         form = ProyectoForm()
     return render(request, 'nuevo_proyecto.html', {'form': form})
+
+def balance_comprobacion(request):
+    # Procesar el formulario de filtrado de fechas
+    form = FechaFiltroForm(request.GET or None)
+    fecha_inicio = form.cleaned_data.get('fecha_inicio') if form.is_valid() else None
+    fecha_fin = form.cleaned_data.get('fecha_fin') if form.is_valid() else None
+
+    # Obtener todas las cuentas
+    cuentas = Cuenta.objects.all()
+
+    # Filtrar los movimientos en función del rango de fechas
+    movimientos = Movimiento.objects.all()
+    if fecha_inicio:
+        movimientos = movimientos.filter(transaccion__fecha__gte=fecha_inicio)
+    if fecha_fin:
+        movimientos = movimientos.filter(transaccion__fecha__lte=fecha_fin)
+
+    # Calcular el saldo en base a los movimientos filtrados por cada cuenta
+    cuentas_balance = cuentas.annotate(
+        debe=Sum(
+            Case(
+                When(movimiento__in=movimientos, movimiento__debe__gt=0, then=F('movimiento__debe')),
+                default=Value(0),
+                output_field=DecimalField(max_digits=12, decimal_places=2)
+            )
+        ),
+        haber=Sum(
+            Case(
+                When(movimiento__in=movimientos, movimiento__haber__gt=0, then=F('movimiento__haber')),
+                default=Value(0),
+                output_field=DecimalField(max_digits=12, decimal_places=2)
+            )
+        )
+    ).filter(~Q(debe=0, haber=0))  # Filtrar cuentas que NO tengan ambos saldos en 0
+
+    # Calcular los totales de Debe y Haber
+    total_debe = cuentas_balance.aggregate(total=Sum('debe'))['total'] or 0
+    total_haber = cuentas_balance.aggregate(total=Sum('haber'))['total'] or 0
+
+    context = {
+        'form': form,
+        'cuentas_balance': cuentas_balance,
+        'total_debe': total_debe,
+        'total_haber': total_haber,
+    }
+    return render(request, 'balance_comprobacion.html', context)
+
+def estado_resultados(request):
+    # Procesar el formulario de filtrado de fechas
+    form = FechaFiltroForm(request.GET or None)
+    fecha_inicio = form.cleaned_data.get('fecha_inicio') if form.is_valid() else None
+    fecha_fin = form.cleaned_data.get('fecha_fin') if form.is_valid() else None
+
+    # Filtrar movimientos de acuerdo con el rango de fechas
+    movimientos = Movimiento.objects.all()
+    if fecha_inicio:
+        movimientos = movimientos.filter(transaccion__fecha__gte=fecha_inicio)
+    if fecha_fin:
+        movimientos = movimientos.filter(transaccion__fecha__lte=fecha_fin)
+
+    # Obtener cuentas de ingresos y costos, y calcular su debe y haber en el rango de fechas
+    cuentas = movimientos.filter(Q(cuenta__codigo__startswith='5') | Q(cuenta__codigo__startswith='4')).values(
+        'cuenta__codigo', 'cuenta__nombre'
+    ).annotate(
+        debe=Sum('debe'),
+        haber=Sum('haber')
+    )
+
+    # Calcular los totales de debe y haber
+    total_debe = sum(cuenta['debe'] for cuenta in cuentas)
+    total_haber = sum(cuenta['haber'] for cuenta in cuentas)
+
+    # Calcular utilidad o pérdida bruta
+    utilidad_bruta = total_haber - total_debe
+    es_utilidad = utilidad_bruta >= 0  # Si es positivo, es utilidad; si es negativo, es pérdida
+
+    context = {
+        'form': form,
+        'cuentas': cuentas,
+        'total_debe': total_debe,
+        'total_haber': total_haber,
+        'utilidad_bruta': abs(utilidad_bruta),  # Mostrar siempre como valor positivo
+        'es_utilidad': es_utilidad,             # True si es utilidad, False si es pérdida
+    }
+    return render(request, 'estado_resultados.html', context)

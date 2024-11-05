@@ -1,6 +1,6 @@
 from django import views
 from django.urls import path
-from .views import filtrar_cuentas_por_tipo, inicio,catalogo_cuentas, libro_mayor,registrar_cuenta,transacciones,nueva_transaccion,ver_transaccion,api_libro_mayor, metodos_costeo, reportes_contables, balance_general,crear_costo_indirecto_ajax,nuevo_proyecto
+from .views import filtrar_cuentas_por_tipo, inicio,catalogo_cuentas, libro_mayor,registrar_cuenta,transacciones,nueva_transaccion,ver_transaccion,api_libro_mayor, metodos_costeo, reportes_contables, balance_general,crear_costo_indirecto_ajax,nuevo_proyecto, balance_comprobacion, estado_resultados
 
 urlpatterns = [
     path('', inicio, name='inicio'),
@@ -17,4 +17,6 @@ urlpatterns = [
     path('balance-general/', balance_general, name='balance_general'),
     path('costos-indirectos/crear/ajax/',crear_costo_indirecto_ajax, name='crear_costo_indirecto_ajax'),
     path('nuevo-proyecto/', nuevo_proyecto, name='nuevo_proyecto'),
+    path('balance-comprobacion/', balance_comprobacion, name='balance_comprobacion'),
+    path('estado-resultados/', estado_resultados, name='estado_resultados'),
 ]

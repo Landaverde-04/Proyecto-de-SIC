@@ -92,3 +92,15 @@ class ProyectoForm(forms.ModelForm):
         proyecto.save()
 
         return proyecto
+    
+class FechaFiltroForm(forms.Form):
+    fecha_inicio = forms.DateField(
+        required=False,
+        widget=forms.DateInput(attrs={'type': 'date'}),
+        label="Fecha de inicio"
+    )
+    fecha_fin = forms.DateField(
+        required=False,
+        widget=forms.DateInput(attrs={'type': 'date'}),
+        label="Fecha de fin"
+    )

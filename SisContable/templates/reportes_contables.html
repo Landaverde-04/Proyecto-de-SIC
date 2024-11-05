@@ -32,7 +32,9 @@
 </body>
 <body>
     <h1>Reportes</h1>
-    <li><a href="{% url 'libro_mayor' %}">Libro Mayor</a></li>
-    <li><a href="{% url 'balance_general' %}">Balance General</a></li>
+    <a href="{% url 'libro_mayor' %}"><button>Libro Mayor</button></a>
+    <a href="{% url 'balance_general' %}"><button>Balance General</button></a> <br>
+    <a href="{% url 'balance_comprobacion' %}"><button>Balance de comprobacion</button></a>
+    <a href="{% url 'estado_resultados' %}"><button>Estado de resultados</button></a>
 </body>
 </html>

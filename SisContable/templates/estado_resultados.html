@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Estado de Resultados</title>
+</head>
+<body>
+    <h1>Estado de Resultados</h1>
+
+    <!-- Formulario de filtrado por fechas -->
+    <form method="get">
+        {{ form.as_p }}
+        <button type="submit">Filtrar</button>
+    </form>
+
+    <table border="1">
+        <thead>
+            <tr>
+                <th>Código</th>
+                <th>Nombre de la Cuenta</th>
+                <th>Debe</th>
+                <th>Haber</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for cuenta in cuentas %}
+            <tr>
+                <td>{{ cuenta.cuenta__codigo }}</td>
+                <td>{{ cuenta.cuenta__nombre }}</td>
+                <td>{{ cuenta.debe }}</td>
+                <td>{{ cuenta.haber }}</td>
+            </tr>
+            {% endfor %}
+            <!-- Fila para los totales de Debe y Haber -->
+            <tr>
+                <td colspan="2"><strong>Total</strong></td>
+                <td><strong>{{ total_debe }}</strong></td>
+                <td><strong>{{ total_haber }}</strong></td>
+            </tr>
+            <!-- Fila para la Utilidad o Pérdida Bruta -->
+            <tr>
+                <td colspan="2"><strong>{% if es_utilidad %}Utilidad Bruta{% else %}Pérdida Bruta{% endif %}</strong></td>
+                {% if es_utilidad %}
+                    <td></td>
+                    <td><strong>{{ utilidad_bruta }}</strong></td>
+                {% else %}
+                    <td><strong>{{ utilidad_bruta }}</strong></td>
+                    <td></td>
+                {% endif %}
+            </tr>
+        </tbody>
+    </table>
+</body>
+</html>

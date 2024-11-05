@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'menu.css' %}">
+    <title>Balance de Comprobación</title>
+</head>
+<body class="cuerpo">
+    <header class="contenedor">
+        <div class="content">
+
+            <div class="menu container">
+                <a href="{% url 'inicio' %}" class="logo">INICIO</a>
+                <input type="checkbox" id="menu"/>
+                <label for="menu">
+                    <img src="{% static 'menu.png' %}" class="menu-icono" alt="">
+                </label>
+                <nav class="navbar">
+                    <ul>
+                        <li><a href="{% url 'catalogo_cuentas' %}">Catálogo de Cuentas</a></li>                         
+                        <li><a href="{% url 'transacciones' %}">Transacciones</a></li>
+                        <li><a href="{% url 'metodos-costeo' %}">Métodos de Costeo</a></li>
+                        <li><a href="{% url 'reportes_contables' %}">Reportes Contables</a></li>
+                    </ul>
+                </nav>
+            </div>
+
+        </div>
+    </header>  
+</body>
+<body>
+    <h1>Balance de Comprobación</h1>
+
+    <!-- Formulario de filtrado por fechas -->
+    <form method="get">
+        {{ form.as_p }}
+        <button type="submit">Filtrar</button>
+    </form>
+
+    <table border="1">
+        <thead>
+            <tr>
+                <th>Código</th>
+                <th>Nombre de la Cuenta</th>
+                <th>Debe</th>
+                <th>Haber</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for cuenta in cuentas_balance %}
+            <tr>
+                <td>{{ cuenta.codigo }}</td>
+                <td>{{ cuenta.nombre }}</td>
+                <td>{{ cuenta.debe }}</td>
+                <td>{{ cuenta.haber }}</td>
+            </tr>
+            {% endfor %}
+            <!-- Fila para los totales de Debe y Haber -->
+            <tr>
+                <td colspan="2"><strong>Total</strong></td>
+                <td><strong>{{ total_debe }}</strong></td>
+                <td><strong>{{ total_haber }}</strong></td>
+            </tr>
+        </tbody>
+    </table>
+    <a href="{% url 'reportes_contables' %}">
+        <button type="button">Regresar</button>
+    </a>
+</body>
+</html>
