@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     {% load static %}
     <link rel="stylesheet" href="{% static 'menu.css' %}">
+    <link rel="stylesheet" href="{% static 'reportes-contables.css' %}">
     <title>Reportes contables</title>
 </head>
 <body class="cuerpo">
@@ -32,10 +33,12 @@
 </body>
 <body>
     <h1>Reportes</h1>
+    <div class="ajuste">
     <a href="{% url 'libro_mayor' %}"><button>Libro Mayor</button></a>
     <a href="{% url 'balance_general' %}"><button>Balance General</button></a> <br>
     <a href="{% url 'balance_comprobacion' %}"><button>Balance de comprobacion</button></a>
     <a href="{% url 'estado_resultados' %}"><button>Estado de resultados</button></a>
     <a href="{% url 'capital_social' %}"><button>Estado de capital</button></a>
+      </div>
 </body>
 </html>
