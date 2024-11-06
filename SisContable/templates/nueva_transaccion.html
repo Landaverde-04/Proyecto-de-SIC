@@ -85,16 +85,16 @@
         <fieldset>
             <legend>Detalles de la Transacción</legend>
             <div class="fecha-div">
-            {{ transaccion_form.as_p }} 
-        </div>
+                {{ transaccion_form.as_p }} 
+            </div>
         </fieldset>
-
+    
         <!-- Formulario de cuentas asociadas -->
         <fieldset>
             <legend>Cuentas Asociadas</legend>
-
+    
             {{ formset.management_form }}
-
+    
             <table border="1" id="tablaCuentas">
                 <thead>
                     <tr>
@@ -121,13 +121,12 @@
                 </tfoot>
             </table>
         </fieldset>
-
+    
         <button type="submit">Guardar Transacción</button>
         <a href="{% url 'transacciones' %}">
             <button type="button">Regresar</button>
         </a>
     </form>
-
     
 </div>
 </body>

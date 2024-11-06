@@ -1,13 +1,15 @@
 import datetime
 from django.forms import ValidationError, inlineformset_factory
 from django.http import JsonResponse
-from django.urls import reverse_lazy
+from django.urls import reverse
 from django.db.models import Sum, F, Case, When, Value, DecimalField, Q
 from django.db import transaction, models
 from django.contrib import messages
 from django.shortcuts import render, redirect, get_object_or_404
-from .models import Cuenta, Transaccion, Movimiento,Proyecto, CostoDirecto, CostoIndirecto
-from .forms import CuentaForm, LibroMayorFiltroForm, TransaccionForm, MovimientoForm, MovimientoFormSet,ProyectoForm, CostoDirectoForm, CostoIndirectoForm, FechaFiltroForm
+from .models import Cuenta, Transaccion, Movimiento,Proyecto, CostoDirecto, CostoIndirecto, PeriodoContable
+from .forms import CuentaForm, LibroMayorFiltroForm, TransaccionForm, MovimientoForm, MovimientoFormSet,ProyectoForm, CostoDirectoForm, CostoIndirectoForm, FechaFiltroForm, PeriodoContableForm, PeriodoContableFiltroForm
+from django.utils import timezone
+
 
 # Vista para la página de inicio
 def inicio(request):
@@ -76,34 +78,36 @@ def nueva_transaccion(request):
         if transaccion_form.is_valid() and formset.is_valid():
             try:
                 with transaction.atomic():
-                    # Guarda la transacción inicial sin calcular los totales aún
+                    # Guardar la transacción con el periodo contable seleccionado
                     transaccion = transaccion_form.save()
 
-                    # Asocia y guarda los movimientos
+                    # Asociar cada movimiento al periodo contable de la transacción y guardar
                     formset.instance = transaccion
-                    formset.save()
-
-                    # Calcula y valida los totales en tiempo real
-                    total_debe, total_haber = transaccion.calcular_totales()
+                    movimientos = formset.save(commit=False)
+                    for movimiento in movimientos:
+                        movimiento.periodo_contable = transaccion.periodo_contable
+                        movimiento.save()
                     
+                    # Validar la partida doble
+                    total_debe, total_haber = transaccion.calcular_totales()
                     if total_debe != total_haber:
                         raise ValidationError("La partida doble no está equilibrada: el total del Debe debe ser igual al total del Haber.")
 
-                    # Actualiza los saldos de las cuentas involucradas en la transacción
+                    # Actualizar los saldos de las cuentas involucradas
                     transaccion.actualizar_saldos()
 
-                    # Redirige a la lista de transacciones después de guardar
                     return redirect('transacciones')
 
             except ValidationError as e:
-                # Manejo de errores de validación
                 transaccion_form.add_error(None, e.message)
             except Exception as e:
                 print(f"Error al guardar la transacción: {e}")
         else:
+            # Imprimir errores de validación para depuración
             print(f"Errores en el formulario de transacción: {transaccion_form.errors}")
             print(f"Errores en el formset: {formset.errors}")
     else:
+        # Inicializar formularios vacíos para una nueva transacción y sus movimientos
         transaccion_form = TransaccionForm()
         formset = MovimientoFormSet(queryset=Movimiento.objects.none())
 
@@ -111,6 +115,21 @@ def nueva_transaccion(request):
         'transaccion_form': transaccion_form,
         'formset': formset,
     })
+
+def crear_periodo_contable(request):
+    if request.method == 'POST':
+        form = PeriodoContableForm(request.POST)
+        if form.is_valid():
+            form.save()
+            messages.success(request, "Periodo contable creado exitosamente.")
+            return redirect('inicio')  # Cambia 'inicio' a la vista o URL que desees usar después de la creación
+        else:
+            messages.error(request, "Por favor corrige los errores a continuación.")
+    else:
+        form = PeriodoContableForm()
+    
+    return render(request, 'crear_periodo_contable.html', {'form': form})
+
 
 def ver_transaccion(request, id):
     transaccion = get_object_or_404(Transaccion, id_transaccion=id)
@@ -229,37 +248,48 @@ def reportes_contables(request):
     return render(request, 'reportes_contables.html')
 
 def balance_general(request):
-    # Filtrar cuentas de Activo, Pasivo y Patrimonio individualmente y luego unir las consultas
-    activos = Cuenta.objects.filter(codigo__startswith='1')
-    pasivos = Cuenta.objects.filter(codigo__startswith='2')
-    patrimonio = Cuenta.objects.filter(codigo__startswith='3')
+    form = PeriodoContableFiltroForm(request.GET or None)
+    cuentas_balance = []
+    total_debe = 0
+    total_haber = 0
+    periodo_contable = None
+    codigo_capital = "31"  # Cambia esto si tu cuenta de capital tiene un código diferente
 
-    # Concatenar los tres QuerySets en una lista de cuentas
-    cuentas_balance = list(activos) + list(pasivos) + list(patrimonio)
+    if form.is_valid():
+        periodo_contable = form.cleaned_data.get('periodo_contable')
 
-    # Anotar Debe y Haber para cada cuenta según el tipo
-    for cuenta in cuentas_balance:
-        if cuenta.codigo.startswith('1'):  # Activos
-            cuenta.debe = cuenta.saldo
-            cuenta.haber = 0
-        elif cuenta.codigo.startswith('2') or cuenta.codigo.startswith('3'):  # Pasivos y Patrimonio
-            cuenta.debe = 0
-            cuenta.haber = cuenta.saldo
+        # Cargar todas las cuentas de Activo, Pasivo y Patrimonio
+        cuentas_balance = Cuenta.objects.filter(
+            Q(codigo__startswith='1') | Q(codigo__startswith='2') | Q(codigo__startswith='3')
+        )
 
-    # Calcular el total de Debe y Haber
-    total_debe = sum(cuenta.debe for cuenta in cuentas_balance)
-    total_haber = sum(cuenta.haber for cuenta in cuentas_balance)
+        # Agregar debe y haber a cada cuenta en función del periodo contable
+        for cuenta in cuentas_balance:
+            # Filtrar movimientos de la cuenta en el periodo contable seleccionado
+            movimientos = Movimiento.objects.filter(
+                transaccion__periodo_contable=periodo_contable,
+                cuenta=cuenta
+            )
+            # Calcular el total de 'debe' y 'haber' basados en el periodo
+            cuenta.debe = movimientos.aggregate(total_debe=Sum('debe'))['total_debe'] or 0
+            cuenta.haber = movimientos.aggregate(total_haber=Sum('haber'))['total_haber'] or 0
 
-    # Calcular la diferencia entre Haber y Debe
-    resultado_final = total_haber - total_debe
-    es_utilidad = resultado_final > 0  # Si es positivo, es utilidad; si no, es pérdida
+            # Si es la cuenta de capital, usamos el saldo directamente de la base de datos
+            if cuenta.codigo == codigo_capital:
+                cuenta.saldo = cuenta.saldo  # Usamos el saldo directamente
+            else:
+                cuenta.saldo = cuenta.haber - cuenta.debe
+
+        # Calcular los totales de debe y haber para todas las cuentas
+        total_debe = sum(cuenta.debe for cuenta in cuentas_balance)
+        total_haber = sum(cuenta.haber for cuenta in cuentas_balance)
 
     context = {
+        'form': form,
         'cuentas_balance': cuentas_balance,
         'total_debe': total_debe,
         'total_haber': total_haber,
-        'resultado_final': abs(resultado_final),  # Mostrar siempre el valor absoluto
-        'es_utilidad': es_utilidad,
+        'periodo_contable': periodo_contable,
     }
     return render(request, 'balance_general.html', context)
 
@@ -382,33 +412,131 @@ def balance_comprobacion(request):
     return render(request, 'balance_comprobacion.html', context)
 
 def estado_resultados(request):
-    # Procesar el formulario de filtrado de fechas
-    form = FechaFiltroForm(request.GET or None)
-    fecha_inicio = form.cleaned_data.get('fecha_inicio') if form.is_valid() else None
-    fecha_fin = form.cleaned_data.get('fecha_fin') if form.is_valid() else None
+    form = PeriodoContableFiltroForm(request.GET or None)
+    cuentas = []
+    total_debe = 0
+    total_haber = 0
+    utilidad_bruta = 0
+    es_utilidad = True
 
-    # Filtrar movimientos de acuerdo con el rango de fechas
-    movimientos = Movimiento.objects.all()
-    if fecha_inicio:
-        movimientos = movimientos.filter(transaccion__fecha__gte=fecha_inicio)
-    if fecha_fin:
-        movimientos = movimientos.filter(transaccion__fecha__lte=fecha_fin)
+    if request.method == 'POST' and form.is_valid():
+        periodo_contable = form.cleaned_data.get('periodo_contable')
 
-    # Obtener cuentas de ingresos y costos, y calcular su debe y haber en el rango de fechas
-    cuentas = movimientos.filter(Q(cuenta__codigo__startswith='5') | Q(cuenta__codigo__startswith='4')).values(
-        'cuenta__codigo', 'cuenta__nombre'
-    ).annotate(
-        debe=Sum('debe'),
-        haber=Sum('haber')
-    )
+        # Filtrar las cuentas de ingresos y gastos para calcular los totales
+        cuentas_ingresos_gastos = Cuenta.objects.filter(
+            Q(codigo__startswith='5') | Q(codigo__startswith='4')
+        )
 
-    # Calcular los totales de debe y haber
-    total_debe = sum(cuenta['debe'] for cuenta in cuentas)
-    total_haber = sum(cuenta['haber'] for cuenta in cuentas)
+        # Calcular los totales de debe y haber antes del cierre
+        for cuenta in cuentas_ingresos_gastos:
+            movimientos = Movimiento.objects.filter(cuenta=cuenta, transaccion__periodo_contable=periodo_contable)
+            total_debe += movimientos.aggregate(Sum('debe'))['debe__sum'] or 0
+            total_haber += movimientos.aggregate(Sum('haber'))['haber__sum'] or 0
 
-    # Calcular utilidad o pérdida bruta
-    utilidad_bruta = total_haber - total_debe
-    es_utilidad = utilidad_bruta >= 0  # Si es positivo, es utilidad; si es negativo, es pérdida
+        # Verificar si el total de debe y haber están equilibrados
+        if total_debe == total_haber:
+            messages.error(request, "El cierre no se puede realizar porque el total de Debe y Haber ya están equilibrados.")
+        else:
+            # Crear una nueva transacción para el cierre
+            with transaction.atomic():
+                transaccion_cierre = Transaccion.objects.create(fecha=periodo_contable.fin, periodo_contable=periodo_contable)
+
+                # Cerrar las cuentas de ingresos y gastos
+                total_ingresos = 0
+                total_gastos = 0
+
+                for cuenta in cuentas_ingresos_gastos:
+                    # Calcular el saldo actual de la cuenta
+                    movimientos = Movimiento.objects.filter(cuenta=cuenta, transaccion__periodo_contable=periodo_contable)
+                    debe_total = movimientos.aggregate(Sum('debe'))['debe__sum'] or 0
+                    haber_total = movimientos.aggregate(Sum('haber'))['haber__sum'] or 0
+                    saldo_actual = haber_total - debe_total if cuenta.codigo.startswith('5') else debe_total - haber_total
+
+                    # Sumar el saldo a ingresos o gastos
+                    if cuenta.codigo.startswith('5'):
+                        total_ingresos += haber_total - debe_total
+                    elif cuenta.codigo.startswith('4'):
+                        total_gastos += debe_total - haber_total
+
+                    # Crear el movimiento inverso para dejar el saldo en cero
+                    if cuenta.codigo.startswith('5'):  # Cuenta de ingresos
+                        Movimiento.objects.create(
+                            transaccion=transaccion_cierre,
+                            cuenta=cuenta,
+                            debe=saldo_actual if saldo_actual > 0 else 0,
+                            haber=0,
+                            periodo_contable=periodo_contable
+                        )
+                    elif cuenta.codigo.startswith('4'):  # Cuenta de gastos
+                        Movimiento.objects.create(
+                            transaccion=transaccion_cierre,
+                            cuenta=cuenta,
+                            debe=0,
+                            haber=abs(saldo_actual) if saldo_actual < 0 else saldo_actual,
+                            periodo_contable=periodo_contable
+                        )
+
+                    # Establecer el saldo de la cuenta directamente en cero
+                    cuenta.saldo = 0
+                    cuenta.save()
+
+                # Calcular utilidad o pérdida bruta y registrar el resultado en la cuenta 3102 o 3103
+                utilidad_bruta = total_ingresos - total_gastos
+                if utilidad_bruta > 0:
+                    cuenta_utilidad = Cuenta.objects.get(codigo='3102')
+                    Movimiento.objects.create(
+                        transaccion=transaccion_cierre,
+                        cuenta=cuenta_utilidad,
+                        debe=0,
+                        haber=utilidad_bruta,
+                        periodo_contable=periodo_contable
+                    )
+                    # Actualizar el saldo de la cuenta de utilidad
+                    cuenta_utilidad.saldo += utilidad_bruta
+                    cuenta_utilidad.save()
+                else:
+                    cuenta_perdida = Cuenta.objects.get(codigo='3103')
+                    Movimiento.objects.create(
+                        transaccion=transaccion_cierre,
+                        cuenta=cuenta_perdida,
+                        debe=abs(utilidad_bruta),
+                        haber=0,
+                        periodo_contable=periodo_contable
+                    )
+                    # Actualizar el saldo de la cuenta de pérdida
+                    cuenta_perdida.saldo += abs(utilidad_bruta)
+                    cuenta_perdida.save()
+
+                messages.success(request, "Estado de resultados cerrado exitosamente.")
+
+    # Mostrar el estado de resultados (cálculos normales)
+    if form.is_valid():
+        periodo_contable = form.cleaned_data.get('periodo_contable')
+
+        # Filtrar movimientos de acuerdo al periodo contable seleccionado y solo cuentas de ingresos y costos
+        movimientos = Movimiento.objects.filter(
+            transaccion__periodo_contable=periodo_contable,
+            cuenta__codigo__startswith='4'
+        ) | Movimiento.objects.filter(
+            transaccion__periodo_contable=periodo_contable,
+            cuenta__codigo__startswith='5'
+        )
+
+        # Obtener las cuentas de ingresos y costos asociadas a estos movimientos
+        cuentas = movimientos.values(
+            'cuenta__codigo', 'cuenta__nombre'
+        ).annotate(
+            debe=Sum('debe'),
+            haber=Sum('haber')
+        )
+
+        # Calcular los totales de Debe y Haber
+        total_debe = sum(cuenta['debe'] for cuenta in cuentas)
+        total_haber = sum(cuenta['haber'] for cuenta in cuentas)
+
+        # Calcular utilidad o pérdida bruta
+        utilidad_bruta = total_haber - total_debe
+        es_utilidad = utilidad_bruta >= 0  # Si es positivo, es utilidad; si es negativo, es pérdida
 
     context = {
         'form': form,
@@ -419,3 +547,202 @@ def estado_resultados(request):
         'es_utilidad': es_utilidad,             # True si es utilidad, False si es pérdida
     }
     return render(request, 'estado_resultados.html', context)
+
+def capital_social(request):
+    form = PeriodoContableFiltroForm(request.GET or None)
+    cuentas = []
+    total_debe = 0
+    total_haber = 0
+    es_aumento = True
+
+    if request.method == 'POST' and form.is_valid():
+        periodo_contable = form.cleaned_data.get('periodo_contable')
+
+        # Filtrar las cuentas de capital social para calcular los totales
+        cuentas_capital_social = Cuenta.objects.filter(
+            Q(codigo__startswith='3') & ~Q(codigo='3101')
+        )
+
+        # Calcular los totales de debe y haber antes del cierre
+        for cuenta in cuentas_capital_social:
+            movimientos = Movimiento.objects.filter(cuenta=cuenta, transaccion__periodo_contable=periodo_contable)
+            total_debe += movimientos.aggregate(Sum('debe'))['debe__sum'] or 0
+            total_haber += movimientos.aggregate(Sum('haber'))['haber__sum'] or 0
+
+        # Verificar si el total de debe y haber están equilibrados
+        if total_debe == total_haber:
+            messages.error(request, "El cierre no se puede realizar porque el total de Debe y Haber ya están equilibrados.")
+            # Evitar el cierre sin redirigir, para que se mantenga el estado actual de la página
+        else:
+            # Crear una nueva transacción para el cierre
+            with transaction.atomic():
+                transaccion_cierre = Transaccion.objects.create(fecha=periodo_contable.fin, periodo_contable=periodo_contable)
+
+                total_capital = 0
+
+                for cuenta in cuentas_capital_social:
+                    # Calcular el saldo actual de la cuenta
+                    movimientos = Movimiento.objects.filter(cuenta=cuenta, transaccion__periodo_contable=periodo_contable)
+                    debe_total = movimientos.aggregate(Sum('debe'))['debe__sum'] or 0
+                    haber_total = movimientos.aggregate(Sum('haber'))['haber__sum'] or 0
+                    saldo_actual = haber_total - debe_total if cuenta.codigo.startswith('3') else debe_total - haber_total
+
+                    # Sumar el saldo al total de capital
+                    total_capital += haber_total - debe_total
+
+                    # Crear el movimiento inverso para dejar el saldo en cero
+                    if saldo_actual > 0:
+                        Movimiento.objects.create(
+                            transaccion=transaccion_cierre,
+                            cuenta=cuenta,
+                            debe=saldo_actual,
+                            haber=0,
+                            periodo_contable=periodo_contable
+                        )
+                    elif saldo_actual < 0:
+                        Movimiento.objects.create(
+                            transaccion=transaccion_cierre,
+                            cuenta=cuenta,
+                            debe=0,
+                            haber=abs(saldo_actual),
+                            periodo_contable=periodo_contable
+                        )
+
+                    # Establecer el saldo de la cuenta directamente en cero
+                    cuenta.saldo = 0
+                    cuenta.save()
+
+                # Registrar el resultado en la cuenta de Capital Social (3101)
+                cuenta_capital_social = Cuenta.objects.get(codigo='3101')
+                if total_capital > 0:
+                    Movimiento.objects.create(
+                        transaccion=transaccion_cierre,
+                        cuenta=cuenta_capital_social,
+                        debe=0,
+                        haber=total_capital,
+                        periodo_contable=periodo_contable
+                    )
+                    cuenta_capital_social.saldo += total_capital
+                else:
+                    Movimiento.objects.create(
+                        transaccion=transaccion_cierre,
+                        cuenta=cuenta_capital_social,
+                        debe=abs(total_capital),
+                        haber=0,
+                        periodo_contable=periodo_contable
+                    )
+                    cuenta_capital_social.saldo += abs(total_capital)
+                cuenta_capital_social.save()
+
+                messages.success(request, "Capital social cerrado exitosamente.")
+
+    # Mostrar el capital social calculado (cálculos normales)
+    if form.is_valid():
+        periodo_contable = form.cleaned_data.get('periodo_contable')
+
+        # Filtrar movimientos de acuerdo al periodo contable seleccionado y solo cuentas de capital social, excluyendo la cuenta 3101
+        movimientos = Movimiento.objects.filter(
+            transaccion__periodo_contable=periodo_contable,
+            cuenta__codigo__startswith='3'
+        ).exclude(cuenta__codigo='3101')
+
+        # Obtener las cuentas de capital social asociadas a estos movimientos
+        cuentas = movimientos.values(
+            'cuenta__codigo', 'cuenta__nombre'
+        ).annotate(
+            debe=Sum('debe'),
+            haber=Sum('haber')
+        )
+
+        # Calcular los totales de Debe y Haber
+        total_debe = sum(cuenta['debe'] for cuenta in cuentas)
+        total_haber = sum(cuenta['haber'] for cuenta in cuentas)
+
+    context = {
+        'form': form,
+        'cuentas': cuentas,
+        'total_debe': total_debe,
+        'total_haber': total_haber,
+        'es_aumento': total_haber >= total_debe,  # True si es aumento de capital, False si es disminución
+    }
+    return render(request, 'estado_capital.html', context)
+
+def cerrar_periodo_contable(request, periodo_id):
+    periodo_contable = get_object_or_404(PeriodoContable, id=periodo_id)
+
+    # Verificar si el periodo ya está cerrado
+    if periodo_contable.cerrado:
+        messages.error(request, "El periodo contable ya está cerrado.")
+        return redirect(reverse('balance_general'))
+
+    try:
+        with transaction.atomic():
+            print("Iniciando el cierre del periodo contable...")  # Depuración
+
+            # Crear una transacción de cierre para este periodo contable
+            transaccion_cierre = Transaccion.objects.create(
+                fecha=timezone.now(),
+                periodo_contable=periodo_contable
+            )
+            print(f"Transacción de cierre creada con ID {transaccion_cierre.id_transaccion}")  # Usar id_transaccion
+
+            # 1. Saldar cuentas de Activo y Pasivo
+            cuentas_saldar = Cuenta.objects.filter(
+                Q(codigo__startswith='1') | Q(codigo__startswith='2')
+            )
+
+            for cuenta in cuentas_saldar:
+                saldo_actual = cuenta.saldo
+                print(f"Procesando cuenta {cuenta.codigo} con saldo {saldo_actual}")  # Depuración
+
+                if saldo_actual != 0:
+                    # Crear un movimiento inverso para saldar la cuenta
+                    Movimiento.objects.create(
+                        transaccion=transaccion_cierre,
+                        cuenta=cuenta,
+                        debe=saldo_actual if cuenta.codigo.startswith('2') else 0,
+                        haber=saldo_actual if cuenta.codigo.startswith('1') else 0,
+                        periodo_contable=periodo_contable  # Aseguramos el periodo contable
+                    )
+                    # Poner el saldo de la cuenta en 0
+                    cuenta.saldo = 0
+                    cuenta.save()
+                    print(f"Cuenta {cuenta.codigo} saldada. Nuevo saldo: {cuenta.saldo}")  # Depuración
+
+            # 2. Transferir el saldo de la cuenta "3101" a la cuenta "31"
+            cuenta_3101 = Cuenta.objects.get(codigo="3101")
+            saldo_3101 = cuenta_3101.saldo
+            print(f"Saldo de la cuenta 3101 antes de transferir: {saldo_3101}")  # Depuración
+
+            if saldo_3101 != 0:
+                cuenta_31 = Cuenta.objects.get(codigo="31")
+                # Crear el movimiento de transferencia en la transacción de cierre
+                Movimiento.objects.create(
+                    transaccion=transaccion_cierre,
+                    cuenta=cuenta_31,
+                    debe=0 if saldo_3101 > 0 else abs(saldo_3101),
+                    haber=saldo_3101 if saldo_3101 > 0 else 0,
+                    periodo_contable=periodo_contable  # Aseguramos el periodo contable
+                )
+                # Actualizar el saldo de la cuenta "31"
+                cuenta_31.saldo += saldo_3101
+                cuenta_31.save()
+                print(f"Saldo de la cuenta 31 después de la transferencia: {cuenta_31.saldo}")  # Depuración
+
+                # Poner el saldo de la cuenta "3101" en 0
+                cuenta_3101.saldo = 0
+                cuenta_3101.save()
+                print(f"Cuenta 3101 saldada. Nuevo saldo: {cuenta_3101.saldo}")  # Depuración
+
+            # 3. Marcar el periodo contable como cerrado
+            periodo_contable.cerrado = True
+            periodo_contable.save()
+            print(f"Periodo contable {periodo_contable.año} cerrado: {periodo_contable.cerrado}")  # Depuración
+
+            messages.success(request, "El periodo contable ha sido cerrado exitosamente.")
+
+    except Exception as e:
+        print(f"Error al cerrar el periodo contable: {e}")  # Depuración de errores
+        messages.error(request, f"Ocurrió un error al cerrar el periodo contable: {e}")
+
+    return redirect(reverse('balance_general'))

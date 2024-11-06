@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Crear Periodo Contable</title>
+    
+</head>
+<body>
+    <h1>Crear Periodo Contable</h1>
+
+    <form method="post" action="{% url 'crear_periodo_contable' %}">
+        {% csrf_token %}
+        
+        <!-- Mostrar mensajes de error o éxito -->
+        {% if messages %}
+            {% for message in messages %}
+                <div class="{% if message.tags %}{{ message.tags }}{% endif %}">
+                    {{ message }}
+                </div>
+            {% endfor %}
+        {% endif %}
+
+        <!-- Formulario de Periodo Contable -->
+        {{ form.as_p }}
+
+        <button type="submit">Crear Periodo Contable</button>
+        <a href="{% url 'transacciones' %}">
+            <button type="button">Cancelar</button>
+        </a>
+    </form>
+</body>
+</html>

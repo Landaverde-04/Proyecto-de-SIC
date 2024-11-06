@@ -1,4 +1,5 @@
 from decimal import Decimal
+from datetime import date
 from django.db import models
 from django.core.exceptions import ValidationError
 from django.db.models import Sum
@@ -44,10 +45,62 @@ class Cuenta(models.Model):
     def __str__(self):
         return f"{self.codigo} - {self.nombre} - Saldo: {self.saldo}"
 
+class PeriodoContable(models.Model):
+    año = models.IntegerField(unique=True)
+    inicio = models.DateField()
+    fin = models.DateField()
+    cerrado = models.BooleanField(default=False)  # Indica si el periodo está cerrado
+
+    @classmethod
+    def crear_periodo_anual(cls, año):
+        """Crea o recupera un periodo contable anual para el año dado."""
+        inicio = date(año, 1, 1)
+        fin = date(año, 12, 31)
+        periodo, creado = cls.objects.get_or_create(año=año, defaults={'inicio': inicio, 'fin': fin})
+        return periodo
+
+    def __str__(self):
+        return f"Periodo {self.año} - Del {self.inicio} al {self.fin}"
+
+    def calcular_estado_de_resultados(self):
+        """Calcula la utilidad o pérdida bruta y crea un movimiento con el resultado."""
+        if self.cerrado:
+            return "El periodo ya está cerrado, no se puede recalcular el estado de resultados."
+
+        # Calcular ingresos (cuentas que empiezan con '5') en el periodo
+        ingresos = Movimiento.objects.filter(
+            transaccion__periodo_contable=self,  # Movimientos del periodo actual
+            cuenta__codigo__startswith='5'       # Cuentas de ingresos
+        ).aggregate(total=Sum('haber'))['total'] or 0
+
+        # Calcular costos (cuentas que empiezan con '4') en el periodo
+        costos = Movimiento.objects.filter(
+            transaccion__periodo_contable=self,  # Movimientos del periodo actual
+            cuenta__codigo__startswith='4'       # Cuentas de costos
+        ).aggregate(total=Sum('debe'))['total'] or 0
+
+        utilidad_bruta = ingresos - costos  # Utilidad si es positivo, pérdida si es negativo
+
+        # Crear un movimiento para registrar la utilidad o pérdida bruta
+        cuenta_utilidad = Cuenta.objects.get(codigo="3301")  # Cuenta para utilidad o pérdida bruta
+        movimiento_utilidad = Movimiento.objects.create(
+            transaccion=None,  # No está ligado a una transacción específica, sino al periodo
+            cuenta=cuenta_utilidad,
+            debe=abs(utilidad_bruta) if utilidad_bruta < 0 else 0,
+            haber=utilidad_bruta if utilidad_bruta > 0 else 0
+        )
+
+        # Asociar el movimiento al periodo contable
+        movimiento_utilidad.transaccion = None
+        movimiento_utilidad.save()
+
+        return utilidad_bruta  # Retorna el valor para usar en el HTML
+
 
 class Transaccion(models.Model):
     id_transaccion = models.AutoField(primary_key=True)
     fecha = models.DateField()
+    periodo_contable = models.ForeignKey(PeriodoContable, on_delete=models.PROTECT, related_name="transacciones")
 
     def calcular_totales(self):
         """Calcula el total de Debe y Haber de la transacción sumando los movimientos asociados."""
@@ -74,17 +127,16 @@ class Transaccion(models.Model):
         return f"Transacción {self.id_transaccion} - {self.fecha}"
 
 
+
 class Movimiento(models.Model):
-    transaccion = models.ForeignKey(
-        Transaccion, on_delete=models.CASCADE, related_name="movimientos"
-    )
+    transaccion = models.ForeignKey(Transaccion, on_delete=models.CASCADE, related_name="movimientos", null=True, blank=True)
     cuenta = models.ForeignKey(Cuenta, on_delete=models.CASCADE)
     debe = models.DecimalField(max_digits=12, decimal_places=2, default=0.00)
     haber = models.DecimalField(max_digits=12, decimal_places=2, default=0.00)
+    periodo_contable = models.ForeignKey(PeriodoContable, on_delete=models.PROTECT, related_name="movimientos")
 
     def __str__(self):
-        return f"Transacción {self.transaccion.id_transaccion} - Cuenta {self.cuenta.codigo}: Debe {self.debe}, Haber {self.haber}"
-
+        return f"Cuenta {self.cuenta.codigo}: Debe {self.debe}, Haber {self.haber}"
 
 class CostoDirecto(models.Model):
     nombre = models.CharField(max_length=100)

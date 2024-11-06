@@ -3,14 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    {% load static %}
+    {% load static %}    
     <link rel="stylesheet" href="{% static 'menu.css' %}">
     <title>Balance General</title>
 </head>
 <body class="cuerpo">
     <header class="contenedor">
         <div class="content">
-
             <div class="menu container">
                 <a href="{% url 'inicio' %}" class="logo">INICIO</a>
                 <input type="checkbox" id="menu"/>
@@ -19,19 +18,24 @@
                 </label>
                 <nav class="navbar">
                     <ul>
-                        <li><a href="{% url 'catalogo_cuentas' %}">Catálogo de Cuentas</a></li>                         
+                        <li><a href="{% url 'catalogo_cuentas' %}">Catálogo de Cuentas</a></li>                        
                         <li><a href="{% url 'transacciones' %}">Transacciones</a></li>
                         <li><a href="{% url 'metodos-costeo' %}">Métodos de Costeo</a></li>
                         <li><a href="{% url 'reportes_contables' %}">Reportes Contables</a></li>
                     </ul>
                 </nav>
             </div>
-
         </div>
-    </header>  
+    </header>
 </body>
 <body>
     <h1>Balance General</h1>
+
+    <!-- Formulario de filtrado por periodo contable -->
+    <form method="get">
+        {{ form.as_p }}
+        <button type="submit">Filtrar</button>
+    </form>
 
     <table border="1">
         <thead>
@@ -59,6 +63,18 @@
             </tr>            
         </tbody>
     </table>
+
+    <!-- Botón para cerrar el periodo contable -->
+    {% if periodo_contable %}
+    <form method="post" action="{% url 'cerrar_periodo_contable' periodo_id=periodo_contable.id %}">
+        {% csrf_token %}
+        <button type="submit" onclick="return confirm('¿Estás seguro de que deseas cerrar el periodo contable?')">
+            Cerrar Periodo Contable
+        </button>
+    </form>
+{% else %}
+    <p>Por favor selecciona un periodo contable para poder cerrarlo.</p>
+{% endif %}
     <a href="{% url 'reportes_contables' %}">
         <button type="button">Regresar</button>
     </a>

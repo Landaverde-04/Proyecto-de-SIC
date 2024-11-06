@@ -1,5 +1,6 @@
 from django import forms
-from .models import Cuenta, Transaccion, Movimiento,Proyecto, CostoDirecto, CostoIndirecto
+from .models import Cuenta, Transaccion, Movimiento,Proyecto, CostoDirecto, CostoIndirecto, PeriodoContable
+from django.core.exceptions import ValidationError
 
 class CuentaForm(forms.ModelForm):
     class Meta:
@@ -7,12 +8,28 @@ class CuentaForm(forms.ModelForm):
         fields = ['codigo', 'nombre']  # Los campos que quieres manejar en el formulario
 
 class TransaccionForm(forms.ModelForm):
+    periodo_contable = forms.ModelChoiceField(
+        queryset=PeriodoContable.objects.all(),
+        label="Periodo Contable",
+        help_text="Seleccione el periodo contable"
+    )
+
     class Meta:
         model = Transaccion
-        fields = ['fecha']
+        fields = ['fecha', 'periodo_contable']
         widgets = {
             'fecha': forms.DateInput(attrs={'type': 'date'}),
         }
+
+    def clean_periodo_contable(self):
+        # Obtener el periodo contable seleccionado
+        periodo_contable = self.cleaned_data.get('periodo_contable')
+        
+        # Verificar si el periodo contable está cerrado
+        if periodo_contable and periodo_contable.cerrado:
+            raise ValidationError("No se puede crear una transacción en un periodo contable cerrado.")
+        
+        return periodo_contable
 
 class MovimientoForm(forms.ModelForm):
     class Meta:
@@ -103,4 +120,21 @@ class FechaFiltroForm(forms.Form):
         required=False,
         widget=forms.DateInput(attrs={'type': 'date'}),
         label="Fecha de fin"
+    )
+
+    
+class PeriodoContableForm(forms.ModelForm):
+    class Meta:
+        model = PeriodoContable
+        fields = ['año', 'inicio', 'fin']
+        widgets = {
+            'inicio': forms.DateInput(attrs={'type': 'date'}),
+            'fin': forms.DateInput(attrs={'type': 'date'}),
+        }
+
+class PeriodoContableFiltroForm(forms.Form):
+    periodo_contable = forms.ModelChoiceField(
+        queryset=PeriodoContable.objects.all(),
+        label="Periodo Contable",
+        help_text="Seleccione el periodo contable para filtrar el estado de resultados"
     )

@@ -1,6 +1,6 @@
 from django import views
 from django.urls import path
-from .views import filtrar_cuentas_por_tipo, inicio,catalogo_cuentas, libro_mayor,registrar_cuenta,transacciones,nueva_transaccion,ver_transaccion,api_libro_mayor, metodos_costeo, reportes_contables, balance_general,crear_costo_indirecto_ajax,nuevo_proyecto, balance_comprobacion, estado_resultados
+from .views import filtrar_cuentas_por_tipo, inicio,catalogo_cuentas, libro_mayor,registrar_cuenta,transacciones,nueva_transaccion,ver_transaccion,api_libro_mayor, metodos_costeo, reportes_contables, balance_general,crear_costo_indirecto_ajax,nuevo_proyecto, balance_comprobacion, estado_resultados, crear_periodo_contable, capital_social, cerrar_periodo_contable
 
 urlpatterns = [
     path('', inicio, name='inicio'),
@@ -19,4 +19,7 @@ urlpatterns = [
     path('nuevo-proyecto/', nuevo_proyecto, name='nuevo_proyecto'),
     path('balance-comprobacion/', balance_comprobacion, name='balance_comprobacion'),
     path('estado-resultados/', estado_resultados, name='estado_resultados'),
+    path('crear-periodo-contable/', crear_periodo_contable, name='crear_periodo_contable'),
+    path('capital-social/', capital_social, name='capital_social'),
+    path('cerrar-periodo-contable/<int:periodo_id>/', cerrar_periodo_contable, name='cerrar_periodo_contable'),
 ]

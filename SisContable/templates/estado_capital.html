@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     {% load static %}    
     <link rel="stylesheet" href="{% static 'menu.css' %}">
-    <title>Estado de Resultados</title>
+    <title>Capital Social</title>
 </head>
 <body class="cuerpo">
     <header class="contenedor">
@@ -29,8 +29,7 @@
     </header>
 </body>
 <body>
-    <h1>Estado de Resultados</h1>
-
+    <h1>Capital Social</h1>        
     <!-- Formulario de filtrado por periodo contable -->
     <form method="get">
         {{ form.as_p }}
@@ -61,35 +60,24 @@
                 <td><strong>{{ total_debe }}</strong></td>
                 <td><strong>{{ total_haber }}</strong></td>
             </tr>
-            <!-- Fila para la Utilidad o Pérdida Bruta -->
-            <tr>
-                <td colspan="2"><strong>{% if es_utilidad %}Utilidad Bruta{% else %}Pérdida Bruta{% endif %}</strong></td>
-                {% if es_utilidad %}
-                    <td></td>
-                    <td><strong>{{ utilidad_bruta }}</strong></td>
-                {% else %}
-                    <td><strong>{{ utilidad_bruta }}</strong></td>
-                    <td></td>
-                {% endif %}
-            </tr>
         </tbody>
     </table>
 
-    <!-- Botón para cerrar cuentas -->
+    <!-- Botón para cerrar el capital social -->
     <form method="post">
         {% csrf_token %}
-        <button type="submit" name="cerrar_cuentas">Cerrar Cuentas</button>
+        <button type="submit">Cerrar Capital Social</button>
     </form>
     <!-- Bloque para mostrar los mensajes -->
     {% if messages %}
-        <div>
-            {% for message in messages %}
-                <p{% if message.tags %} class="{{ message.tags }}"{% endif %}>{{ message }}</p>
-            {% endfor %}
-        </div>
-    {% endif %}
-    <a href="{% url 'reportes_contables' %}">
-        <button type="button">Regresar</button>
-    </a>
+    <div>
+        {% for message in messages %}
+            <p{% if message.tags %} class="{{ message.tags }}"{% endif %}>{{ message }}</p>
+        {% endfor %}
+    </div>
+{% endif %}
+<a href="{% url 'reportes_contables' %}">
+    <button type="button">Regresar</button>
+</a>
 </body>
 </html>
