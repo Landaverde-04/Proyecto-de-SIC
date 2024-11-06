@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     {% load static %}
     <title>TechSolutions</title>
-    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="{% static 'inicio.css' %}">
     <link rel="stylesheet" href="{% static 'menu.css' %}">
 </head>
 <body class="cuerpo">
@@ -27,9 +27,15 @@
                     </ul>
                 </nav>
             </div>
-
         </div>
     </header>  
+</body>
+<body>
+    <div class="div-inicio">
+    <h1>¡Bienvenido a TechSolutions!</h1>
+    <p>Comienza a operar las transacciones de la empresa</p>
+    <a href="{% url 'transacciones' %}"><button class="comenzar">Comenzar</button></a>
+</div>
 </body>
 </html>
 

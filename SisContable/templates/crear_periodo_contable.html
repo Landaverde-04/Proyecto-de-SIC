@@ -3,13 +3,38 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'crear_periodo.css' %}">
+    <link rel="stylesheet" href="{% static 'menu.css' %}">
     <title>Crear Periodo Contable</title>
     
 </head>
+<body class="cuerpo">
+    <header class="contenedor">
+        <div class="content">
+            <div class="menu container">
+                <a href="{% url 'inicio' %}" onclick="confirmarRegresar(event)" class="logo">INICIO</a>
+                <input type="checkbox" id="menu"/>
+                <label for="menu" class="label-menu">
+                    <img src="{% static 'menu.png' %}" class="menu-icono" alt="">
+                </label>
+                <nav class="navbar">
+                    <ul>
+                        <li><a href="{% url 'catalogo_cuentas' %}" onclick="confirmarRegresar(event)">Catálogo de Cuentas</a></li>                        
+                        <li><a href="{% url 'transacciones' %}"onclick="confirmarRegresar(event)">Transacciones</a></li>
+                        <li><a href="{% url 'metodos-costeo' %}"onclick="confirmarRegresar(event)">Métodos de Costeo</a></li>
+                        <li><a href="{% url 'reportes_contables' %}"onclick="confirmarRegresar(event)">Reportes Contables</a></li>                        
+                    </ul>
+                </nav>
+            </div>
+        </div>
+    </header>  
+</body>
 <body>
-    <h1>Crear Periodo Contable</h1>
+    
 
-    <form method="post" action="{% url 'crear_periodo_contable' %}">
+    <form class="formulario" method="post" action="{% url 'crear_periodo_contable' %}">
+        <h1>Crear Periodo Contable</h1>
         {% csrf_token %}
         
         <!-- Mostrar mensajes de error o éxito -->
