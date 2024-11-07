@@ -124,15 +124,15 @@ USE_TZ = True
 
 STATIC_URL = '/static/'
 
-# This production code might break development mode, so we check whether we're in DEBUG mode
+# STATICFILES_DIRS debe apuntar a la carpeta 'static' dentro de 'SisContable'
+STATICFILES_DIRS = [
+    os.path.join(BASE_DIR, 'SisContable', 'static'),
+]
+
+# En producción, Render necesitará que 'STATIC_ROOT' esté configurado para recopilar archivos estáticos
 if not DEBUG:
     STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
     STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
-
-# Directorio para archivos estáticos
-"""STATICFILES_DIRS = [
-    os.path.join(BASE_DIR, "static"),  
-]"""
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.1/ref/settings/#default-auto-field
