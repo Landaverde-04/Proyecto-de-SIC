@@ -42,124 +42,160 @@
             {% endfor %}
         {% endif %}
 
-        <!-- Tabla de Proyectos -->
+          <!-- Tabla de Proyectos -->
+<div class="table-container">
+    <h2>Proyectos</h2>
+    <table>
+        <thead>
+            <tr>
+                <th>Número del Proyecto</th>
+                <th>Nombre</th>
+                <th>Duración (meses)</th>
+                <th>Costo Total</th>
+                <th>Acciones</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for proyecto in proyectos %}
+            <tr>
+                <td>{{ proyecto.id }}</td>
+                <td>{{ proyecto.nombre }}</td>
+                <td>{{ proyecto.duracion_total|floatformat:2 }}</td>
+                <td>${{ proyecto.costo_total|floatformat:2 }}</td>
+                <td>
+                    <a href="{% url 'detalle_proyecto' proyecto.id %}" class="button">Ver Detalle</a>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    <button onclick="window.location.href='{% url 'nuevo_proyecto' %}'">Agregar Nuevo Proyecto</button>
+</div>
+
+        <!-- Tabla de Costos Indirectos (CI) con Edición Inline -->
         <div class="table-container">
-            <h2>Proyectos</h2>
+            <h2>Costos Indirectos (CI)</h2>
             <table>
                 <thead>
                     <tr>
-                        <th>Número del Proyecto</th>
                         <th>Nombre</th>
-                        <th>Duración (meses)</th>
-                        <th>Costo Total</th>
+                        <th>Monto</th>
+                        <th>Acciones</th>
                     </tr>
                 </thead>
                 <tbody>
-                    {% for proyecto in proyectos %}
-                    <tr>
-                        <td>{{ proyecto.id }}</td>
-                        <td>{{ proyecto.nombre }}</td>
-                        <td>{{ proyecto.duracion_total|floatformat:2 }}</td>
-                        <td>${{ proyecto.costo_total|floatformat:2 }}</td>
+                    {% for costo in costos_indirectos %}
+                    <tr id="ci-row-{{ costo.id }}">
+                        <form method="post" action="{% url 'editar_costo_indirecto' costo.id %}">
+                            {% csrf_token %}
+                            <td><input type="text" name="nombre" value="{{ costo.nombre }}" readonly></td>
+                            <td><input type="number" name="monto" value="{{ costo.monto }}" step="0.01" readonly></td>
+                            <td>
+                                <button type="button" onclick="toggleEdit('ci-row-{{ costo.id }}')">Editar</button>
+                                <button type="submit" style="display:none;">Guardar</button>
+                                <button type="button" onclick="toggleEdit('ci-row-{{ costo.id }}', true)" style="display:none;">Cancelar</button>
+                                <a href="{% url 'eliminar_costo_indirecto' costo.id %}" onclick="return confirm('¿Estás seguro de eliminar este costo indirecto?');">Eliminar</a>
+                            </td>
+                        </form>
                     </tr>
                     {% endfor %}
                 </tbody>
             </table>
-            <button onclick="window.location.href='{% url 'nuevo_proyecto' %}'">Agregar Nuevo Proyecto</button>
+            <p><strong>Total de Costos Indirectos:</strong> ${{ total_costos_indirectos|floatformat:2 }}</p>
+            
+            <!-- Formulario en línea para agregar costo indirecto -->
+            <form method="post" class="form-inline">
+                {% csrf_token %}
+                {{ form_ci.nombre }}
+                {{ form_ci.monto }}
+                <button type="submit" name="ci-submit">Agregar Costo Indirecto</button>
+            </form>
         </div>
 
-        <!-- Tabla de Costos Indirectos (CI) -->
+       <!-- Tabla de Costos Directos (CD) con Edición Inline -->
         <div class="table-container">
-            <div class="table-header" onclick="toggleTable('ciTable')">
-                <h2>Costos Indirectos (CI)</h2>
-            </div>
-            <div id="ciTable" class="table-content">
-                <table>
-                    <thead>
-                        <tr>
-                            <th>Nombre</th>
-                            <th>Monto</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for costo in costos_indirectos %}
-                        <tr>
-                            <td>{{ costo.nombre }}</td>
-                            <td>${{ costo.monto }}</td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-                <p><strong>Total de Costos Indirectos:</strong> ${{ total_costos_indirectos|floatformat:2 }}</p>
-                
-                <!-- Formulario en línea para agregar costo indirecto -->
-                <form method="post" class="form-inline">
-                    {% csrf_token %}
-                    {{ form_ci.nombre }}
-                    {{ form_ci.monto }}
-                    <button type="submit" name="ci-submit">Agregar Costo Indirecto</button>
-                </form>
-            </div>
-        </div>
-
-       <!-- Tabla de Costos Directos (CD) -->
-        <div class="table-container">
-            <div class="table-header" onclick="toggleTable('cdTable')">
-                <h2>Costos Directos (CD)</h2>
-            </div>
-            <div id="cdTable" class="table-content">
-                <table>
-                    <thead>
-                        <tr>
-                            <th>Nombre del Puesto</th>
-                            <th>Salario</th>
-                            <th>Cantidad de Trabajadores</th>
-                            <th>AFP</th>
-                            <th>INCAF</th>
-                            <th>Seguro Social</th>
-                            <th>Vacaciones</th>
-                            <th>Aguinaldo</th>
-                            <th>Total con Prestaciones</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for puesto in costos_directos %}
-                        <tr>
-                            <td>{{ puesto.nombre }}</td>
-                            <td>${{ puesto.salario_mensual|floatformat:2 }}</td>
-                            <td>{{ puesto.cantidad_empleados }}</td>
+            <h2>Costos Directos (CD)</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Nombre del Puesto</th>
+                        <th>Salario</th>
+                        <th>Cantidad de Trabajadores</th>
+                        <th>AFP</th>
+                        <th>INCAF</th>
+                        <th>Seguro Social</th>
+                        <th>Vacaciones</th>
+                        <th>Aguinaldo</th>
+                        <th>Total con Prestaciones</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for puesto in costos_directos %}
+                    <tr id="cd-row-{{ puesto.id }}">
+                        <form method="post" action="{% url 'editar_costo_directo' puesto.id %}">
+                            {% csrf_token %}
+                            <td><input type="text" name="nombre" value="{{ puesto.nombre }}" readonly></td>
+                            <td><input type="number" name="salario_mensual" value="{{ puesto.salario_mensual }}" step="0.01" readonly></td>
+                            <td><input type="number" name="cantidad_empleados" value="{{ puesto.cantidad_empleados }}" min="1" readonly></td>
                             <td>${{ puesto.afp|floatformat:2 }}</td>
                             <td>${{ puesto.incaf|floatformat:2 }}</td>
                             <td>${{ puesto.isss|floatformat:2 }}</td>
                             <td>${{ puesto.vacaciones|floatformat:2 }}</td>
                             <td>${{ puesto.aguinaldo|floatformat:2 }}</td>
                             <td>${{ puesto.total_con_prestaciones|floatformat:2 }}</td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-                <p><strong>Total de Costos Directos:</strong> ${{ total_costos_directos|floatformat:2 }}</p>
+                            <td>
+                                <button type="button" onclick="toggleEdit('cd-row-{{ puesto.id }}')">Editar</button>
+                                <button type="submit" style="display:none;">Guardar</button>
+                                <button type="button" onclick="toggleEdit('cd-row-{{ puesto.id }}', true)" style="display:none;">Cancelar</button>
+                                <a href="{% url 'eliminar_costo_directo' puesto.id %}" onclick="return confirm('¿Estás seguro de eliminar este costo directo?');">Eliminar</a>
+                            </td>
+                        </form>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            <p><strong>Total de Costos Directos:</strong> ${{ total_costos_directos|floatformat:2 }}</p>
 
-                <!-- Formulario en línea para agregar costo directo -->
-                <form method="post" class="form-inline">
-                    {% csrf_token %}
-                    {{ form_cd.nombre }}
-                    {{ form_cd.salario_mensual }}
-                    {{ form_cd.cantidad_empleados }}
-                    <button type="submit" name="cd-submit">Agregar Costo Directo</button>
-                </form>
-            </div>
+            <!-- Formulario en línea para agregar costo directo -->
+            <form method="post" class="form-inline">
+                {% csrf_token %}
+                {{ form_cd.nombre }}
+                {{ form_cd.salario_mensual }}
+                {{ form_cd.cantidad_empleados }}
+                <button type="submit" name="cd-submit">Agregar Costo Directo</button>
+            </form>
         </div>
     </main>
 
     <script>
-        function toggleTable(tableId) {
-            const tableContent = document.getElementById(tableId);
-            tableContent.style.display = tableContent.style.display === "none" ? "block" : "none";
+        function toggleEdit(rowId, cancel = false) {
+            const row = document.getElementById(rowId);
+            const inputs = row.querySelectorAll("input[type='text'], input[type='number']");
+            const buttons = row.querySelectorAll("button");
+
+            inputs.forEach(input => {
+                if (cancel) {
+                    input.value = input.defaultValue;  // Reset value if cancel
+                    input.setAttribute("readonly", "readonly");
+                } else {
+                    input.removeAttribute("readonly");
+                }
+            });
+
+            buttons.forEach(button => {
+                if (button.innerText === "Guardar" || button.innerText === "Cancelar") {
+                    button.style.display = cancel ? "none" : "inline";
+                } else if (button.innerText === "Editar") {
+                    button.style.display = cancel ? "inline" : "none";
+                }
+            });
         }
     </script>
 </body>
 </html>
+
+
 
 
 

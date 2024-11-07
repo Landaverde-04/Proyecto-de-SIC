@@ -9,6 +9,8 @@ from django.shortcuts import render, redirect, get_object_or_404
 from .models import Cuenta, Transaccion, Movimiento,Proyecto, CostoDirecto, CostoIndirecto, PeriodoContable
 from .forms import CuentaForm, LibroMayorFiltroForm, TransaccionForm, MovimientoForm, MovimientoFormSet,ProyectoForm, CostoDirectoForm, CostoIndirectoForm, FechaFiltroForm, PeriodoContableForm, PeriodoContableFiltroForm
 from django.utils import timezone
+from datetime import datetime
+
 
 
 # Vista para la página de inicio
@@ -139,54 +141,42 @@ def ver_transaccion(request, id):
         'movimientos': movimientos,
     })
 
-# views.py
-
-from django.shortcuts import render
-from .models import Movimiento, Cuenta
-
 def libro_mayor(request):
     form = LibroMayorFiltroForm(request.GET or None)
     cuentas = Cuenta.objects.all()  # Para el menú desplegable de cuentas
-    movimientos = Movimiento.objects.none()  # Inicializar movimientos como vacío
+    movimientos = Movimiento.objects.all()  # Inicializar con todos los movimientos
 
-    # Inicializar los totales y saldo
     total_debe = 0
     total_haber = 0
     saldo = 0
     saldo_tipo = ""
 
+    # Filtros simultáneos según el formulario
     if form.is_valid():
         cuenta = form.cleaned_data.get('cuenta')
         fecha_inicio = form.cleaned_data.get('fecha_inicio')
         fecha_fin = form.cleaned_data.get('fecha_fin')
 
-        # Filtrar movimientos sólo si una cuenta ha sido seleccionada
+        # Filtrar movimientos progresivamente
         if cuenta:
-            movimientos = Movimiento.objects.filter(cuenta=cuenta)
+            movimientos = movimientos.filter(cuenta=cuenta)
+        if fecha_inicio:
+            movimientos = movimientos.filter(transaccion__fecha__gte=fecha_inicio)
+        if fecha_fin:
+            movimientos = movimientos.filter(transaccion__fecha__lte=fecha_fin)
 
-            # Aplicar filtros de fecha si existen
-            if fecha_inicio:
-                movimientos = movimientos.filter(transaccion__fecha__gte=fecha_inicio)
-            if fecha_fin:
-                movimientos = movimientos.filter(transaccion__fecha__lte=fecha_fin)
+        # Calcular totales y saldo
+        for movimiento in movimientos:
+            total_debe += movimiento.debe
+            total_haber += movimiento.haber
 
-            # Calcular el total del debe y haber
-            for movimiento in movimientos:
-                total_debe += movimiento.debe
-                total_haber += movimiento.haber
+        # Determinar saldo y tipo
+        if cuenta and cuenta.get_tipo_cuenta() in ["Activo", "Gastos"]:
+            saldo = total_debe - total_haber
+        else:
+            saldo = total_haber - total_debe
 
-            # Calcular el saldo y determinar el tipo
-            if cuenta.get_tipo_cuenta() in ["Activo", "Gastos"]:
-                saldo = total_debe - total_haber
-            else:  # Pasivo, Patrimonio y Ventas
-                saldo = total_haber - total_debe
-
-            if saldo > 0:
-                saldo_tipo = "Saldo Deudor" if cuenta.get_tipo_cuenta() in ["Activo", "Gastos"] else "Saldo Acreedor"
-            elif saldo < 0:
-                saldo_tipo = "Saldo Acreedor" if cuenta.get_tipo_cuenta() in ["Activo", "Gastos"] else "Saldo Deudor"
-            else:
-                saldo_tipo = "Cuenta Saldada"
+        saldo_tipo = "Saldo Deudor" if saldo > 0 else "Saldo Acreedor" if saldo < 0 else "Cuenta Saldada"
 
     return render(request, 'libro_mayor.html', {
         'form': form,
@@ -194,7 +184,7 @@ def libro_mayor(request):
         'movimientos': movimientos,
         'total_debe': total_debe,
         'total_haber': total_haber,
-        'saldo': abs(saldo),  # Mostrar el saldo como valor absoluto
+        'saldo': abs(saldo),  # Mostrar saldo absoluto
         'saldo_tipo': saldo_tipo,
     })
 
@@ -212,34 +202,36 @@ def api_libro_mayor(request):
     cuenta_id = request.GET.get('cuenta')
     fecha_inicio = request.GET.get('fecha_inicio')
     fecha_fin = request.GET.get('fecha_fin')
-    
-    movimientos = Movimiento.objects.select_related('cuenta', 'transaccion')
 
-    # Filtrar por cuenta si se ha seleccionado una
-    if cuenta_id:
-        movimientos = movimientos.filter(cuenta_id=cuenta_id)
+    if not cuenta_id:
+        return JsonResponse({"movimientos": [], "error": "Cuenta no especificada"}, status=400)
 
-    # Filtrar por fecha de inicio y fecha de fin si están presentes
+    movimientos = Movimiento.objects.filter(cuenta_id=cuenta_id)
+
     if fecha_inicio:
-        fecha_inicio = datetime.strptime(fecha_inicio, '%Y-%m-%d')
-        movimientos = movimientos.filter(transaccion__fecha__gte=fecha_inicio)
+        try:
+            fecha_inicio_obj = datetime.strptime(fecha_inicio, '%Y-%m-%d')
+            movimientos = movimientos.filter(transaccion__fecha__gte=fecha_inicio_obj)
+        except ValueError:
+            return JsonResponse({"movimientos": [], "error": "Fecha de inicio no válida"}, status=400)
+
     if fecha_fin:
-        fecha_fin = datetime.strptime(fecha_fin, '%Y-%m-%d')
-        movimientos = movimientos.filter(transaccion__fecha__lte=fecha_fin)
+        try:
+            fecha_fin_obj = datetime.strptime(fecha_fin, '%Y-%m-%d')
+            movimientos = movimientos.filter(transaccion__fecha__lte=fecha_fin_obj)
+        except ValueError:
+            return JsonResponse({"movimientos": [], "error": "Fecha de fin no válida"}, status=400)
 
-    # Preparar los datos para la respuesta JSON
-    movimientos_data = []
-    for mov in movimientos:
-        movimientos_data.append({
-            'fecha': mov.transaccion.fecha.strftime('%Y-%m-%d'),
-            'numero_transaccion': mov.transaccion.id_transaccion,
-            'descripcion': mov.cuenta.nombre,
-            'debe': float(mov.debe),
-            'haber': float(mov.haber),
-        })
+    movimientos_data = [{
+        "fecha": movimiento.transaccion.fecha.strftime('%Y-%m-%d'),
+        "numero_transaccion": movimiento.transaccion.id_transaccion,  # Cambiado para reflejar el campo correcto
+        "descripcion": movimiento.transaccion.periodo_contable.año,  # O cualquier otro campo que quieras incluir
+        "debe": float(movimiento.debe),
+        "haber": float(movimiento.haber)
+    } for movimiento in movimientos]
 
-    # Devolver los datos en formato JSON
-    return JsonResponse({'movimientos': movimientos_data})
+    return JsonResponse({"movimientos": movimientos_data})
+
 
 def metodos_costeo(request):
     return render(request, 'metodos-costeo.html')
@@ -343,6 +335,43 @@ def crear_costo_indirecto_ajax(request):
             return JsonResponse({'success': False, 'errors': form.errors}, status=400)
     return JsonResponse({'success': False}, status=400)
 
+# Editar Costo Indirecto
+def editar_costo_indirecto(request, id):
+    if request.method == 'POST':
+        costo = get_object_or_404(CostoIndirecto, id=id)
+        costo.nombre = request.POST.get('nombre')
+        costo.monto = request.POST.get('monto')
+        costo.save()
+        messages.success(request, 'Costo indirecto actualizado exitosamente.')
+    return redirect('metodos-costeo')
+
+# Eliminar Costo Indirecto
+def eliminar_costo_indirecto(request, id):
+    costo = get_object_or_404(CostoIndirecto, id=id)
+    if request.method == 'POST':
+        costo.delete()
+        messages.success(request, 'Costo indirecto eliminado exitosamente.')
+    return redirect('metodos-costeo')
+
+# Editar Costo Directo
+def editar_costo_directo(request, id):
+    if request.method == 'POST':
+        costo = get_object_or_404(CostoDirecto, id=id)
+        costo.nombre = request.POST.get('nombre')
+        costo.salario_mensual = request.POST.get('salario_mensual')
+        costo.cantidad_empleados = request.POST.get('cantidad_empleados')
+        costo.save()
+        messages.success(request, 'Costo directo actualizado exitosamente.')
+    return redirect('metodos-costeo')
+
+# Eliminar Costo Directo
+def eliminar_costo_directo(request, id):
+    costo = get_object_or_404(CostoDirecto, id=id)
+    if request.method == 'POST':
+        costo.delete()
+        messages.success(request, 'Costo directo eliminado exitosamente.')
+    return redirect('metodos-costeo')
+
 def nuevo_proyecto(request):
     if request.method == 'POST':
         form = ProyectoForm(request.POST)
@@ -364,6 +393,35 @@ def nuevo_proyecto(request):
     else:
         form = ProyectoForm()
     return render(request, 'nuevo_proyecto.html', {'form': form})
+
+# Vista para editar un proyecto en una nueva página
+def editar_proyecto(request, id):
+    proyecto = get_object_or_404(Proyecto, id=id)
+    
+    # Calcular total de empleados sin intentar guardarlo directamente en la base de datos
+    proyecto.total_empleados = proyecto.calcular_total_empleados()
+
+    if request.method == 'POST':
+        form = ProyectoForm(request.POST, instance=proyecto)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Proyecto actualizado exitosamente.')
+            return redirect('detalle_proyecto', id=proyecto.id)
+        else:
+            messages.error(request, 'Hubo un error al actualizar el proyecto.')
+    else:
+        form = ProyectoForm(instance=proyecto)
+
+    return render(request, 'editar_proyecto.html', {'form': form, 'proyecto': proyecto})
+
+# Vista para ver el detalle de un proyecto
+def detalle_proyecto(request, id):
+    proyecto = get_object_or_404(Proyecto, id=id)
+    
+    # Asegúrate de que `total_empleados` está calculado y accesible en el contexto
+    proyecto.total_empleados = proyecto.calcular_total_empleados()
+
+    return render(request, 'detalle_proyecto.html', {'proyecto': proyecto})
 
 def balance_comprobacion(request):
     # Procesar el formulario de filtrado de fechas

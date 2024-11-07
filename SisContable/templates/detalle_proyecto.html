@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    {% load static %}
+    <title>Detalle del Proyecto - {{ proyecto.nombre }}</title>
+    <link rel="stylesheet" href="{% static 'styles.css' %}">
+    <link rel="stylesheet" href="{% static 'menu.css' %}">
+</head>
+<body class="cuerpo">
+    <header class="contenedor">
+        <div class="content">
+            <div class="menu container">
+                <a href="{% url 'inicio' %}" class="logo">INICIO</a>
+                <input type="checkbox" id="menu"/>
+                <label for="menu">
+                    <img src="{% static 'menu.png' %}" class="menu-icono" alt="Menu">
+                </label>
+                <nav class="navbar">
+                    <ul>
+                        <li><a href="{% url 'catalogo_cuentas' %}">Catálogo de Cuentas</a></li>                         
+                        <li><a href="{% url 'transacciones' %}">Transacciones</a></li>
+                        <li><a href="{% url 'metodos-costeo' %}">Métodos de Costeo</a></li>
+                        <li><a href="{% url 'reportes_contables' %}">Reportes Contables</a></li>
+                    </ul>
+                </nav>
+            </div>
+        </div>
+    </header>  
+
+    <main class="container">
+        <h1>Detalle del Proyecto: {{ proyecto.nombre }}</h1>
+        <p><strong>Descripción:</strong> {{ proyecto.descripcion }}</p>
+        <p><strong>Puntos de Función Total:</strong> {{ proyecto.puntos_funcion_total }}</p>
+        <p><strong>Productividad:</strong> {{ proyecto.productividad }}</p>
+        <p><strong>Total de Empleados:</strong> {{ proyecto.total_empleados }}</p> <!-- Muestra total_empleados -->
+        <p><strong>Duración Total (meses):</strong> {{ proyecto.duracion_total|floatformat:2 }}</p>
+        <p><strong>Esfuerzo Total:</strong> {{ proyecto.esfuerzo_total|floatformat:2 }}</p>
+        <p><strong>Costo Total:</strong> ${{ proyecto.costo_total|floatformat:2 }}</p>
+
+        <button onclick="window.location.href='{% url 'editar_proyecto' proyecto.id %}'" class="button">Editar Proyecto</button>
+        <button onclick="window.location.href='{% url 'metodos-costeo' %}'" class="button">Volver</button>
+    </main>
+</body>
+</html>
+
+
+
+
