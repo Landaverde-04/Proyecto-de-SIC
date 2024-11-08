@@ -10,7 +10,7 @@ button{
     cursor: pointer;
     border-radius: 5px;
     transition: background-color 0.3s ease;
-    margin: 10px;
+    margin: 10px 0;
 }
 table {
     width: 100%; /* Ajuste automático del ancho según el contenido */
@@ -80,4 +80,29 @@ select {
 
 input[type="date"] {
     background-color: #fdfdfd; /* Color de fondo para los campos de fecha */
+}
+
+h1{
+    text-align: center;
+    margin: 20px auto;
+}
+
+/* Fila par: color claro */
+.tabla tr:nth-child(even) {
+    background-color: #e6e6e6;
+}
+
+/* Fila impar: color oscuro */
+.tabla tr:nth-child(odd) {
+    background-color: #f2f2f2;
+}
+
+.forma{
+    width: 50%;
+    margin: 10px auto;
+}
+
+.div-contenido{
+    width: 50%;
+    margin: 20px auto;
 }

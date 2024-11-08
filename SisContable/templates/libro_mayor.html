@@ -28,12 +28,13 @@
                 </nav>
             </div>
         </div>
-    </header>
-
+    </header>        
+    </body>
+    <body>
     <h1>Libro Mayor</h1>
 
     <!-- Filtros -->
-    <div class="filter-container">
+    <div class="div-filtrado">
         <label for="tipoCuenta">Filtrar por Tipo de Cuenta:</label>
         <select id="tipoCuenta" name="tipoCuenta" onchange="filtrarCuentasPorTipo()">
             <option value="">Todos</option>
@@ -49,7 +50,7 @@
             <option value="">--------</option>
             <!-- Opciones de cuentas serán cargadas aquí dinámicamente -->
         </select>
-
+        <br>
         <label for="fecha_inicio">Fecha de inicio:</label>
         <input type="date" id="fecha_inicio" name="fecha_inicio">
 
@@ -59,9 +60,9 @@
         <button onclick="filtrarMovimientos()">🔍 Filtrar Movimientos</button>
         <button onclick="borrarFiltros()">🔄 Restablecer Filtros</button>
     </div>
-
+    <div class="div-contenido">
     <!-- Tabla de movimientos del libro mayor (vacía por defecto) -->
-    <table border="1">
+    <table class="tabla" border="1">
         <thead>
             <tr>
                 <th>Fecha</th>
@@ -94,7 +95,8 @@
     <a href="{% url 'reportes_contables' %}">
         <button type="button">Regresar</button>
     </a>
-
+</div>
+</body>
     <!-- JavaScript para manejar los filtros y el cálculo de totales -->
     <script>
         async function filtrarCuentasPorTipo() {
@@ -180,7 +182,6 @@
             document.getElementById("saldo").innerText = "0.00";
         }
     </script>
-</body>
 </html>
 
 

@@ -1,0 +1,113 @@
+h1{
+    text-align: center;
+    margin: 20px auto;
+}
+
+.div-proyecto{
+    width: 60%;
+    margin: 30px auto;
+}
+
+.tabla-proyecto{    
+    text-align: center;
+}
+
+table, th, td {
+    border: 1px solid #ddd;
+    padding: 12px;
+    text-align: left;
+    text-align: center;
+}
+
+table {
+    width: 100%; /* Ajuste automático del ancho según el contenido */
+    margin: 20px auto; /* Centrar la tabla horizontalmente */
+    border-collapse: collapse; /* Evita espacios entre los bordes de las celdas */
+    font-size: 16px;
+    box-shadow: 0 2px 3px rgba(0, 0, 0, 0.1); /* Sombra sutil para destacar la tabla */
+    border-radius: 5px;
+    text-align: center;
+}
+
+th {
+    background-color: #454546; /* Fondo azul marino */
+    color: white; /* Texto blanco */
+    font-weight: bold;
+    text-align: center;
+    
+}
+
+tr {
+    background-color: #f9f9f9; /* Color uniforme para todas las filas */
+}
+
+tr:hover {
+    background-color: #d0e9f5; /* Azul claro cuando pasas el mouse */
+}
+
+table tr:nth-child(even) {
+    background-color: #e6e6e6;
+}
+
+/* Fila impar: color oscuro */
+table tr:nth-child(odd) {
+    background-color: #f2f2f2;
+}
+
+input{
+    background-color: transparent;
+    border: none;
+    font-size: 15px;
+    text-align: center;
+}
+
+.div-ci{
+    width: 60%;
+    margin: 30px auto;
+}
+
+.nombre-costo{
+    border: 2px solid #000; /* Grosor del borde, estilo y color */
+    padding: 10px; /* Espaciado interno */
+    border-radius: 5px; /* Bordes redondeados, opcional */
+}
+
+button{
+    background-color: #454546; /* Azul marino */
+    color: white;
+    font-family: sans-serif;
+    border: none;
+    padding: 10px 20px;
+    font-size: 16px;
+    cursor: pointer;
+    border-radius: 5px;
+    transition: background-color 0.3s ease;
+    margin: 10px;
+}
+.th-acciones{
+    width: 20%;
+}
+
+.div-cd{
+    width: 70%;
+    margin: 30px auto;
+    padding: 20px;
+}
+
+.th-acciones2{
+    width: 10%;
+}
+
+.table-cd{
+    width: 60%;
+    table-layout: auto; /* O fixed, según lo que prefieras */
+    border-collapse: collapse;
+}
+
+.input-cd{
+    width: 100%;
+}
+
+h2{
+    text-align: center;
+}

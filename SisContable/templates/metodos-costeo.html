@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     {% load static %}
     <title>Métodos de Costeo - TechSolutions</title>
-    <link rel="stylesheet" href="{% static 'styles.css' %}">
+    <link rel="stylesheet" href="{% static 'metodos_costeo.css' %}">
     <link rel="stylesheet" href="{% static 'menu.css' %}">
 </head>
 <body class="cuerpo">
@@ -28,15 +28,17 @@
             </div>
         </div>
     </header>  
-
-    <main class="container">
+</body>
+<body>
+    
         <h1>Métodos de Costeo</h1>
-        <p>En esta sección puedes gestionar los costos indirectos, costos directos y proyectos para el cálculo de costos de los proyectos.</p>
+        
 
         <!-- Proyectos -->
-        <div class="table-container">
+        <div class="div-proyecto">
+
             <h2>Proyectos</h2>
-            <table>
+            <table class="tabla-proyecto">
                 <thead>
                     <tr>
                         <th>Número del Proyecto</th>
@@ -64,14 +66,14 @@
         </div>
 
         <!-- Costos Indirectos -->
-        <div class="table-container">
+        <div class="div-ci">
             <h2>Costos Indirectos (CI)</h2>
-            <table>
+            <table class="tabla-ci">
                 <thead>
                     <tr>
                         <th>Nombre</th>
                         <th>Monto</th>
-                        <th>Acciones</th>
+                        <th class="th-acciones">Acciones</th>
                     </tr>
                 </thead>
                 <tbody id="costos-indirectos-body">
@@ -88,23 +90,23 @@
             </table>
             <form id="form-costo-indirecto" method="post" class="form-inline">
                 {% csrf_token %}
-                <input type="text" name="nombre" placeholder="Nombre del costo">
-                <input type="number" name="monto" placeholder="Monto" step="0.01">
+                <input class="nombre-costo" type="text" name="nombre" placeholder="Nombre del costo">
+                <input class="nombre-costo" type="number" name="monto" placeholder="Monto" step="0.01">
                 <button type="submit">Agregar Costo Indirecto</button>
             </form>
         </div>
 
         <!-- Costos Directos -->
-        <div class="table-container">
+        <div class="div-cd">
             <h2>Costos Directos (CD)</h2>
-            <table>
+            <table class="tabla-cd">
                 <thead>
                     <tr>
                         <th>Nombre del Puesto</th>
-                        <th>Salario</th>
+                        <th class="th-acciones2">Salario</th>
                         <th>Cantidad de Trabajadores</th>
-                        <th>AFP</th>
-                        <th>INCAF</th>
+                        <th class="th-acciones2">AFP</th>
+                        <th class="th-acciones2">INCAF</th>
                         <th>Seguro Social</th>
                         <th>Vacaciones</th>
                         <th>Aguinaldo</th>
@@ -115,15 +117,15 @@
                 <tbody id="costos-directos-body">
                     {% for puesto in costos_directos %}
                     <tr id="cd-row-{{ puesto.id }}">
-                        <td><input type="text" name="nombre" value="{{ puesto.nombre }}" readonly></td>
-                        <td><input type="number" name="salario_mensual" value="{{ puesto.salario_mensual|floatformat:2 }}" readonly></td>
-                        <td><input type="number" name="cantidad_empleados" value="{{ puesto.cantidad_empleados }}" readonly></td>
-                        <td><input type="number" name="afp" value="{{ puesto.afp|floatformat:2 }}" readonly></td>
-                        <td><input type="number" name="incaf" value="{{ puesto.incaf|floatformat:2 }}" readonly></td>
-                        <td><input type="number" name="isss" value="{{ puesto.isss|floatformat:2 }}" readonly></td>
-                        <td><input type="number" name="vacaciones" value="{{ puesto.vacaciones|floatformat:2 }}" readonly></td>
-                        <td><input type="number" name="aguinaldo" value="{{ puesto.aguinaldo|floatformat:2 }}" readonly></td>
-                        <td><input type="number" name="total_con_prestaciones" value="{{ puesto.total_con_prestaciones|floatformat:2 }}" readonly></td>
+                        <td><input class="input-cd" type="text" name="nombre" value="{{ puesto.nombre }}" readonly></td>                        
+                        <td><input class="input-cd" type="number" name="cantidad_empleados" value="{{ puesto.cantidad_empleados }}" readonly></td>
+                        <td><input class="input-cd" type="number" name="afp" value="{{ puesto.afp|floatformat:2 }}" readonly></td>
+                        <td><input class="input-cd" type="number" name="incaf" value="{{ puesto.incaf|floatformat:2 }}" readonly></td>
+                        <td><input class="input-cd" type="number" name="isss" value="{{ puesto.isss|floatformat:2 }}" readonly></td>
+                        <td><input class="input-cd" type="number" name="vacaciones" value="{{ puesto.vacaciones|floatformat:2 }}" readonly></td>
+                        <td><input class="input-cd" type="number" name="aguinaldo" value="{{ puesto.aguinaldo|floatformat:2 }}" readonly></td>
+                        <td><input class="input-cd" type="number" name="total_con_prestaciones" value="{{ puesto.total_con_prestaciones|floatformat:2 }}" readonly></td>
+                        <td><input class="input-cd" type="number" name="salario_mensual" value="{{ puesto.salario_mensual|floatformat:2 }}" readonly></td>
                         <td>
                             <button type="button" onclick="toggleEdit('cd', {{ puesto.id }})" id="cd-btn-{{ puesto.id }}">Editar</button>
                         </td>
@@ -133,14 +135,14 @@
             </table>
             <form id="form-costo-directo" method="post" class="form-inline">
                 {% csrf_token %}
-                <input type="text" name="nombre" placeholder="Nombre del puesto">
-                <input type="number" name="salario_mensual" placeholder="Salario Mensual" step="0.01">
-                <input type="number" name="cantidad_empleados" placeholder="Cantidad de Trabajadores" min="1">
+                <input class="nombre-costo" type="text" name="nombre" placeholder="Nombre del puesto">
+                <input class="nombre-costo" type="number" name="salario_mensual" placeholder="Salario Mensual" step="0.01">
+                <input class="nombre-costo" type="number" name="cantidad_empleados" placeholder="Cantidad de Trabajadores" min="1">
                 <button type="submit">Agregar Costo Directo</button>
             </form>
         </div>
-    </main>
 
+</body>
     <script>
         // Agregar Costo Indirecto mediante AJAX
         document.getElementById("form-costo-indirecto").addEventListener("submit", function(event) {
@@ -300,7 +302,7 @@
             document.getElementById(`${type}-cancel-${id}`).remove();
         }
     </script>
-</body>
+
 </html>
 
 

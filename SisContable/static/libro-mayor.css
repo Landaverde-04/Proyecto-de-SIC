@@ -29,16 +29,6 @@ table, th, td {
     text-align: left;
 }
 
-/* Fila par: color claro */
-.tabla tr:nth-child(even) {
-    background-color: #e6e6e6;
-}
-
-/* Fila impar: color oscuro */
-.tabla tr:nth-child(odd) {
-    background-color: #f2f2f2;
-}
-
 /* Encabezado de la tabla */
 th {
     background-color: #454546; /* Fondo azul marino */
@@ -84,4 +74,27 @@ input[type="date"] {
     background-color: #fdfdfd; /* Color de fondo para los campos de fecha */
 }
 
+h1{
+    text-align: center;
+    margin: 20px auto;
+}
 
+/* Fila par: color claro */
+.tabla tr:nth-child(even) {
+    background-color: #e6e6e6;
+}
+
+/* Fila impar: color oscuro */
+.tabla tr:nth-child(odd) {
+    background-color: #f2f2f2;
+}
+
+.div-filtrado{
+    width: 50%;
+    margin: 10px auto;
+}
+
+.div-contenido{
+    width: 50%;
+    margin: 20px auto;
+}

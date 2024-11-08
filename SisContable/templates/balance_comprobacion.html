@@ -35,12 +35,12 @@
     <h1>Balance de Comprobación</h1>
 
     <!-- Formulario de filtrado por fechas -->
-    <form method="get">
+    <form class="forma" method="get">
         {{ form.as_p }}
         <button type="submit">Filtrar</button>
     </form>
-
-    <table border="1">
+    <div class="div-contenido">
+    <table class="tabla" border="1">
         <thead>
             <tr>
                 <th>Código</th>
@@ -69,5 +69,6 @@
     <a href="{% url 'reportes_contables' %}">
         <button type="button">Regresar</button>
     </a>
+</div>
 </body>
 </html>
