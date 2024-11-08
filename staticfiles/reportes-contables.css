@@ -1,0 +1,64 @@
+h1{
+  text-align: center;
+  margin: 30px auto;
+}
+
+button{
+    background-color: #454546; /* Azul marino */
+    color: white;
+    font-family: sans-serif;
+    border: none;
+    padding: 10px 20px;
+    font-size: 26px;
+    font-weight: bold;
+    cursor: pointer;
+    border-radius: 5px;
+    transition: background-color 0.3s ease;
+    margin: 10px;
+}
+
+button {
+    display: flex;
+    justify-content: center; /* Centra los botones horizontalmente */
+    align-items: center; /* Centra los botones verticalmente */
+    width: 30%; /* Ocupa todo el ancho de la pantalla */
+    height: 80px; /* Ocupa toda la altura de la pantalla */
+    gap: 20px; /* Espacio entre los botones */
+}
+
+
+
+.ajuste {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr); /* Tres columnas iguales */
+    flex-wrap: wrap; /* Permite que los elementos se muevan a la siguiente línea */
+    gap: 10px; /* Espaciado opcional entre botones */
+    margin: 10px 50px 0px 50px;
+  }
+
+  .ajuste2{
+    display: grid;
+    grid-template-columns: repeat(2, 1fr); /* Tres columnas iguales */
+    
+    gap: 10px; /* Espaciado opcional entre botones */
+    margin: 30px 150px;
+  }
+  
+  button {
+    flex: 1 1 100%; /* Por defecto, cada botón ocupa una fila completa */
+    width: 100%;
+    padding: 10 px;
+  }
+  
+  /* Haz que los primeros tres botones ocupen un tercio del ancho */
+  button:nth-child(4) {
+    flex: 1 1 calc(33.33% - 10px); /* Ajusta el valor si es necesario */
+    
+  }
+  
+  /* Haz que el cuarto y quinto botón ocupen la mitad del ancho */
+  button:nth-child(5) {
+    flex: 1 1 calc(50% - 10px); /* Ajusta el valor si es necesario */
+  }
+  
+ 

@@ -1,0 +1,131 @@
+
+body {    
+    background-color: #E0F7FA; /* Fondo azul claro */
+    color: #333;       
+}
+
+.body-catalogo{
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+/* Estilos para encabezados */
+h1, h2, h3 {
+    color: #000; /* Azul marino */
+    text-align: center;
+    margin-bottom: 30px;
+    margin-top: 20px;
+    font-weight: bold;
+}
+
+label{
+    font-weight: bold;
+    
+}
+
+#tipoCuenta{
+    padding: 5px;
+    border-radius: 7px;
+    margin: 0 20px 0 0;
+}
+
+#busqueda{
+    margin: 5px;
+    padding: 5px;
+    border-radius: 5px;
+    
+}
+/* Estilos para los botones */
+button{
+    background-color: #454546; /* Azul marino */
+    color: white;
+    font-family: sans-serif;
+    border: none;
+    padding: 10px 20px;
+    font-size: 16px;
+    cursor: pointer;
+    border-radius: 5px;
+    transition: background-color 0.3s ease;
+    margin: 10px;
+}
+
+/* Estilos para los botones de acción dentro de la tabla */
+.icon-button {
+    background-color: transparent;
+    border: none;
+    color: #1E3A8A;
+    font-size: 18px;
+    cursor: pointer;
+    padding: 5px;
+    transition: color 0.3s ease;
+}
+
+.menu-button{    
+    margin: 0px;
+    margin-top: 10px;
+    width: 100px 10px;
+}
+
+.button-restablecer{
+    padding: 5px;
+    font-size: 14px;
+}
+
+.icon-button:hover {
+    color: #2746B0; /* Cambia el color del icono al pasar el mouse */
+}
+
+.table-container{
+    margin: 0 auto;
+    width: 50%;
+
+}
+/* Estilos de tabla */
+table {
+    width: 100%; /* Ajuste automático del ancho según el contenido */
+    margin: 20px auto; /* Centrar la tabla horizontalmente */
+    border-collapse: collapse; /* Evita espacios entre los bordes de las celdas */
+    font-size: 16px;
+    box-shadow: 0 2px 3px rgba(0, 0, 0, 0.1); /* Sombra sutil para destacar la tabla */
+    border-radius: 5px;
+}
+
+/* Bordes de la tabla */
+table, th, td {
+    border: 1px solid #ddd;
+    padding: 12px;
+    text-align: left;
+}
+
+/* Fila par: color claro */
+.tabla tr:nth-child(even) {
+    background-color: #e6e6e6;
+}
+
+/* Fila impar: color oscuro */
+.tabla tr:nth-child(odd) {
+    background-color: #f2f2f2;
+}
+
+/* Encabezado de la tabla */
+th {
+    background-color: #454546; /* Fondo azul marino */
+    color: white; /* Texto blanco */
+    font-weight: bold;
+    
+}
+
+.fil-nombre{
+    width: 70%;
+}
+
+/* Estilos para las filas */
+tr {
+    background-color: #f9f9f9; /* Color uniforme para todas las filas */
+}
+
+tr:hover {
+    background-color: #d0e9f5; /* Azul claro cuando pasas el mouse */
+}
+
+

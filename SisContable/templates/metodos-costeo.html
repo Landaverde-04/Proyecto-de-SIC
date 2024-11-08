@@ -74,11 +74,11 @@
                         <th>Acciones</th>
                     </tr>
                 </thead>
-                <tbody>
+                <tbody id="costos-indirectos-body">
                     {% for costo in costos_indirectos %}
                     <tr id="ci-row-{{ costo.id }}">
                         <td><input type="text" name="nombre" value="{{ costo.nombre }}" readonly></td>
-                        <td><input type="number" name="monto" value="{{ costo.monto }}" step="0.01" readonly></td>
+                        <td><input type="number" name="monto" value="{{ costo.monto|floatformat:2 }}" step="0.01" readonly></td>
                         <td>
                             <button type="button" onclick="toggleEdit('ci', {{ costo.id }})" id="ci-btn-{{ costo.id }}">Editar</button>
                         </td>
@@ -86,11 +86,11 @@
                     {% endfor %}
                 </tbody>
             </table>
-            <form method="post" class="form-inline">
+            <form id="form-costo-indirecto" method="post" class="form-inline">
                 {% csrf_token %}
                 <input type="text" name="nombre" placeholder="Nombre del costo">
                 <input type="number" name="monto" placeholder="Monto" step="0.01">
-                <button type="submit" name="ci-submit">Agregar Costo Indirecto</button>
+                <button type="submit">Agregar Costo Indirecto</button>
             </form>
         </div>
 
@@ -112,18 +112,18 @@
                         <th>Acciones</th>
                     </tr>
                 </thead>
-                <tbody>
+                <tbody id="costos-directos-body">
                     {% for puesto in costos_directos %}
                     <tr id="cd-row-{{ puesto.id }}">
                         <td><input type="text" name="nombre" value="{{ puesto.nombre }}" readonly></td>
-                        <td><input type="number" name="salario_mensual" value="{{ puesto.salario_mensual }}" step="0.01" readonly></td>
+                        <td><input type="number" name="salario_mensual" value="{{ puesto.salario_mensual|floatformat:2 }}" readonly></td>
                         <td><input type="number" name="cantidad_empleados" value="{{ puesto.cantidad_empleados }}" readonly></td>
-                        <td>${{ puesto.afp|floatformat:2 }}</td>
-                        <td>${{ puesto.incaf|floatformat:2 }}</td>
-                        <td>${{ puesto.isss|floatformat:2 }}</td>
-                        <td>${{ puesto.vacaciones|floatformat:2 }}</td>
-                        <td>${{ puesto.aguinaldo|floatformat:2 }}</td>
-                        <td>${{ puesto.total_con_prestaciones|floatformat:2 }}</td>
+                        <td><input type="number" name="afp" value="{{ puesto.afp|floatformat:2 }}" readonly></td>
+                        <td><input type="number" name="incaf" value="{{ puesto.incaf|floatformat:2 }}" readonly></td>
+                        <td><input type="number" name="isss" value="{{ puesto.isss|floatformat:2 }}" readonly></td>
+                        <td><input type="number" name="vacaciones" value="{{ puesto.vacaciones|floatformat:2 }}" readonly></td>
+                        <td><input type="number" name="aguinaldo" value="{{ puesto.aguinaldo|floatformat:2 }}" readonly></td>
+                        <td><input type="number" name="total_con_prestaciones" value="{{ puesto.total_con_prestaciones|floatformat:2 }}" readonly></td>
                         <td>
                             <button type="button" onclick="toggleEdit('cd', {{ puesto.id }})" id="cd-btn-{{ puesto.id }}">Editar</button>
                         </td>
@@ -131,20 +131,111 @@
                     {% endfor %}
                 </tbody>
             </table>
-            <form method="post" class="form-inline">
+            <form id="form-costo-directo" method="post" class="form-inline">
                 {% csrf_token %}
                 <input type="text" name="nombre" placeholder="Nombre del puesto">
                 <input type="number" name="salario_mensual" placeholder="Salario Mensual" step="0.01">
                 <input type="number" name="cantidad_empleados" placeholder="Cantidad de Trabajadores" min="1">
-                <button type="submit" name="cd-submit">Agregar Costo Directo</button>
+                <button type="submit">Agregar Costo Directo</button>
             </form>
         </div>
     </main>
 
     <script>
+        // Agregar Costo Indirecto mediante AJAX
+        document.getElementById("form-costo-indirecto").addEventListener("submit", function(event) {
+            event.preventDefault();
+
+            const formData = new FormData(this);
+            const data = {
+                'csrfmiddlewaretoken': formData.get('csrfmiddlewaretoken'),
+                'nombre': formData.get('nombre'),
+                'monto': formData.get('monto')
+            };
+
+            fetch("/costos-indirectos/crear/ajax/", {
+                method: "POST",
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: new URLSearchParams(data)
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    const tbody = document.getElementById("costos-indirectos-body");
+                    const newRow = document.createElement("tr");
+                    newRow.id = `ci-row-${data.costo.id}`;
+                    newRow.innerHTML = `
+                        <td><input type="text" name="nombre" value="${data.costo.nombre}" readonly></td>
+                        <td><input type="number" name="monto" value="${parseFloat(data.costo.monto).toFixed(2)}" readonly></td>
+                        <td><button type="button" onclick="toggleEdit('ci', ${data.costo.id})" id="ci-btn-${data.costo.id}">Editar</button></td>
+                    `;
+                    tbody.appendChild(newRow);
+                    this.reset();
+                    window.location.reload()
+                } else {
+                    alert("Error al agregar el costo indirecto: " + JSON.stringify(data.errors || data.error));
+                }
+            })
+            .catch(error => {
+                console.error("Error en la solicitud AJAX:", error);
+                alert("Error al agregar el costo indirecto.");
+            });
+        });
+
+        // Agregar Costo Directo mediante AJAX
+        document.getElementById("form-costo-directo").addEventListener("submit", function(event) {
+            event.preventDefault();
+
+            const formData = new FormData(this);
+            const data = {
+                'csrfmiddlewaretoken': formData.get('csrfmiddlewaretoken'),
+                'nombre': formData.get('nombre'),
+                'salario_mensual': formData.get('salario_mensual'),
+                'cantidad_empleados': formData.get('cantidad_empleados')
+            };
+
+            fetch("/costos-directos/crear/ajax/", {
+                method: "POST",
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: new URLSearchParams(data)
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    const tbody = document.getElementById("costos-directos-body");
+                    const newRow = document.createElement("tr");
+                    newRow.id = `cd-row-${data.costo.id}`;
+                    newRow.innerHTML = `
+                        <td><input type="text" name="nombre" value="${data.costo.nombre}" readonly></td>
+                        <td><input type="number" name="salario_mensual" value="${parseFloat(data.costo.salario_mensual).toFixed(2)}" readonly></td>
+                        <td><input type="number" name="cantidad_empleados" value="${data.costo.cantidad_empleados}" readonly></td>
+                        <td><input type="number" name="afp" value="0.00" readonly></td>
+                        <td><input type="number" name="incaf" value="0.00" readonly></td>
+                        <td><input type="number" name="isss" value="0.00" readonly></td>
+                        <td><input type="number" name="vacaciones" value="0.00" readonly></td>
+                        <td><input type="number" name="aguinaldo" value="0.00" readonly></td>
+                        <td><input type="number" name="total_con_prestaciones" value="0.00" readonly></td>
+                        <td><button type="button" onclick="toggleEdit('cd', ${data.costo.id})" id="cd-btn-${data.costo.id}">Editar</button></td>
+                    `;
+                    tbody.appendChild(newRow);
+                    this.reset();
+                    window.location.reload()
+                } else {
+                    alert("Error al agregar el costo directo: " + JSON.stringify(data.errors || data.error));
+                }
+            })
+            .catch(error => {
+                console.error("Error en la solicitud AJAX:", error);
+                alert("Error al agregar el costo directo.");
+            });
+        });
+
+        // Función para alternar entre edición y guardado
         function toggleEdit(type, id) {
             const row = document.getElementById(`${type}-row-${id}`);
-            const inputs = row.querySelectorAll("input[name]");
+            const inputs = Array.from(row.querySelectorAll("input[name]")).filter(input => {
+                return type === 'ci' || ['nombre', 'salario_mensual', 'cantidad_empleados'].includes(input.name);
+            });
             const button = document.getElementById(`${type}-btn-${id}`);
             
             if (button.innerText === "Editar") {
@@ -162,6 +253,7 @@
             }
         }
 
+        // Función para guardar los cambios y recargar la página
         function saveChanges(type, id, inputs) {
             const url = `/editar-costo-${type === 'ci' ? 'indirecto' : 'directo'}/${id}/`;
             const data = {
@@ -175,25 +267,34 @@
                 headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
                 body: new URLSearchParams(data)
             })
-            .then(response => {
-                if (response.ok) {
-                    inputs.forEach(input => input.setAttribute("readonly", true));
-                    document.getElementById(`${type}-btn-${id}`).innerText = "Editar";
-                    document.getElementById(`${type}-cancel-${id}`).remove();
-                    location.reload();  // Recarga para reflejar cambios
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Recarga la página para visualizar los cambios después de una edición exitosa
+                    window.location.reload();
                 } else {
-                    alert("Error al guardar los cambios");
+                    console.error("Error al guardar los cambios:", data.errors || data.error);
+                    alert("Error al guardar los cambios: " + (data.errors ? JSON.stringify(data.errors) : data.error));
                 }
+            })
+            .catch(error => {
+                console.error("Fetch error:", error);
+                alert("Error de red al guardar los cambios");
             });
         }
 
+        // Función para cancelar la edición
         function cancelEdit(type, id) {
             const row = document.getElementById(`${type}-row-${id}`);
-            const inputs = row.querySelectorAll("input[name]");
+            const inputs = Array.from(row.querySelectorAll("input[name]")).filter(input => {
+                return type === 'ci' || ['nombre', 'salario_mensual', 'cantidad_empleados'].includes(input.name);
+            });
             const button = document.getElementById(`${type}-btn-${id}`);
             
-            inputs.forEach(input => input.value = input.defaultValue);
-            inputs.forEach(input => input.setAttribute("readonly", true));
+            inputs.forEach(input => {
+                input.value = parseFloat(input.defaultValue).toFixed(2); 
+                input.setAttribute("readonly", true);
+            });
             
             button.innerText = "Editar";
             document.getElementById(`${type}-cancel-${id}`).remove();
@@ -201,6 +302,8 @@
     </script>
 </body>
 </html>
+
+
 
 
 

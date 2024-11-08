@@ -1,0 +1,115 @@
+h1{
+    text-align: center;
+    margin: 30px 20px;
+}
+
+.div-tabla{
+    margin: 0 auto;
+    width: 40%;    
+}
+
+fieldset{
+    margin: 30px auto;
+    padding: 10px;      
+}
+
+legend{
+    font-weight: bold;
+}
+
+table {
+    width: 90%; /* Ajuste automático del ancho según el contenido */
+    margin: 20px auto; /* Centrar la tabla horizontalmente */
+    border-collapse: collapse; /* Evita espacios entre los bordes de las celdas */
+    font-size: 16px;
+    box-shadow: 0 2px 3px rgba(0, 0, 0, 0.1); /* Sombra sutil para destacar la tabla */
+    border-radius: 5px;
+    
+}
+
+.nombre-th{
+    width: 50%;
+    padding: 7px;
+}
+
+.debe{
+    width: 20%;
+}
+
+.haber{
+    width: 20%;
+}
+
+table, th, td {
+    border: 1px solid #ddd;
+    
+    text-align: center;
+}
+
+th {
+    background-color: #454546; 
+    color: white; /* Texto blanco */
+    font-weight: bold;
+    
+}
+
+td{    
+    background-color: #e6e6e6;
+}
+
+.total-td{
+    text-align: center;
+    font-weight: bold;
+    background-color: #454546;
+    color: #e6e6e6;
+    padding: 5px;
+}
+
+#totalDebe{
+    background-color: #c6e2e9;    
+    border: none;
+    border-bottom: 2px solid #000;    
+}
+
+#totalHaber{
+    background-color: #fdcae1;
+    border: none;
+    border-bottom: 2px solid #000;
+}
+
+.tabla tr:nth-child(even) {
+    background-color: #e6e6e6;
+}
+
+/* Fila impar: color oscuro */
+.tabla tr:nth-child(odd) {
+    background-color: #f2f2f2;
+}
+
+input{
+    text-align: center;
+    width: 100%;
+    padding: 3px;
+}
+
+select{
+    width: 100%;
+    padding: 3px;
+}
+
+.fecha-div{
+    width: 30%;
+    font-weight: bold;
+}
+button{
+    background-color: #454546; /* Azul marino */
+    color: white;
+    font-family: sans-serif;
+    border: none;
+    padding: 10px 20px;
+    font-size: 16px;
+    cursor: pointer;
+    border-radius: 5px;
+    transition: background-color 0.3s ease;
+    margin: 10px;
+}

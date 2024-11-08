@@ -286,22 +286,52 @@ def balance_general(request):
     return render(request, 'balance_general.html', context)
 
 def metodos_costeo(request):
-    # Obtener todos los proyectos
+    if request.method == 'POST':
+        # Imprime todo el request.POST para ver todos los datos enviados
+        print("Datos recibidos en POST:", request.POST)
+        
+        # Captura el tipo de formulario
+        form_type = request.POST.get('form_type')
+        print("Tipo de formulario recibido:", form_type)
+        
+        if form_type == 'costo_directo':
+            form = CostoDirectoForm(request.POST)
+            if form.is_valid():
+                form.save()
+                print("Costo Directo guardado exitosamente")
+                return JsonResponse({'success': True, 'message': 'Costo Directo guardado'})
+            else:
+                print("Errores del formulario Costo Directo:", form.errors)
+                return JsonResponse({'success': False, 'errors': form.errors}, status=400)
+        
+        elif form_type == 'costo_indirecto':
+            form = CostoIndirectoForm(request.POST)
+            if form.is_valid():
+                form.save()
+                print("Costo Indirecto guardado exitosamente")
+                return JsonResponse({'success': True, 'message': 'Costo Indirecto guardado'})
+            else:
+                print("Errores del formulario Costo Indirecto:", form.errors)
+                return JsonResponse({'success': False, 'errors': form.errors}, status=400)
+
+        else:
+            print("Formulario desconocido o tipo de formulario no especificado")
+            return JsonResponse({'success': False, 'message': 'Formulario desconocido'}, status=400)
+
+    # Obtener todos los proyectos y costos
     proyectos = Proyecto.objects.all()
-    
-    # Obtener todos los costos directos e indirectos
     costos_directos = CostoDirecto.objects.all()
     costos_indirectos = CostoIndirecto.objects.all()
     
-    # Calcular el total de costos directos e indirectos
+    # Calcular los totales
     total_costos_directos = sum(cd.total_con_prestaciones for cd in costos_directos)
     total_costos_indirectos = sum(ci.monto for ci in costos_indirectos)
 
-    # Formularios para agregar costos directos e indirectos
+    # Formularios para agregar costos
     form_ci = CostoIndirectoForm()
     form_cd = CostoDirectoForm()
 
-    # Pasar los datos al contexto
+    # Contexto para la plantilla
     context = {
         'proyectos': proyectos,
         'costos_directos': costos_directos,
@@ -313,29 +343,33 @@ def metodos_costeo(request):
     }
     return render(request, 'metodos-costeo.html', context)
 
-# Crear Costo Directo con AJAX
 def crear_costo_directo_ajax(request):
     if request.method == 'POST':
+        print("Datos recibidos en POST:", request.POST)
         form = CostoDirectoForm(request.POST)
         nombre = request.POST.get('nombre')
         
         if CostoDirecto.objects.filter(nombre=nombre).exists():
+            print("Error: Nombre duplicado")
             return JsonResponse({'success': False, 'error': 'duplicate'}, status=400)
         
         if form.is_valid():
             costo = form.save()
+            print("Costo guardado con éxito:", costo)
             return JsonResponse({
                 'success': True,
                 'costo': {
-                    'id': costo.id,  # Incluye el ID para manipulación en el frontend
+                    'id': costo.id,
                     'nombre': costo.nombre,
                     'salario_mensual': costo.salario_mensual,
                     'cantidad_empleados': costo.cantidad_empleados
                 }
             })
         else:
+            print("Errores de validación del formulario:", form.errors)
             return JsonResponse({'success': False, 'errors': form.errors}, status=400)
     return JsonResponse({'success': False}, status=400)
+
 
 # Crear Costo Indirecto con AJAX
 def crear_costo_indirecto_ajax(request):

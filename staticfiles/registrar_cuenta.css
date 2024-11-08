@@ -1,0 +1,66 @@
+p{
+    font-family: sans-serif;
+}
+
+.cuerpo-registro{
+    background-color:#ebe8e5;
+    margin: auto;
+}
+
+h1{
+    font-family: sans-serif;
+    text-align: center;
+    color: rgb(226, 229, 233);    
+    margin: 20px 0 10px 0;
+}
+
+label{
+    font-family: sans-serif;
+    color: rgb(226, 229, 233);
+    text-align: center;
+    margin: 0 0 20px 20px;
+    font-size: 19px;
+}
+
+.codigo{
+    margin: 20px 0 0 20px;
+    
+}
+
+input{
+    width: 80%;
+    margin: 0 0 20px 20px;
+    background-color: transparent;
+    border: none;
+    border-bottom: 1.5px solid rgb(255, 255, 255);
+    color: rgb(226, 229, 233);
+    font-size: 17px;
+    
+}
+
+#codigo{
+    width: 30%;
+}
+
+.formulario{
+    background: linear-gradient(#003785, #1465bb);
+    /*background-color: rgb(84, 87, 228);*/
+    width: 400px;
+    height: 350px;
+    padding: 5px 10px 10px 10px;
+    margin: 180px auto;
+    box-shadow: 0px 0px 50px 0px #0007;
+    border-radius: 7%;
+}
+
+button{
+    font-family: sans-serif;
+    width: 30%;
+    text-align: center;
+    margin: 10px 0px 0 130px;
+    color: aliceblue;
+    background-color: transparent;
+    border: aliceblue 2px solid;
+    padding: 10px;    
+    font-size: 17px;
+}
