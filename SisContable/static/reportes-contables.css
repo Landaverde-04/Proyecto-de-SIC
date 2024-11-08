@@ -1,10 +1,15 @@
+h1{
+  text-align: center;
+  margin: 30px auto;
+}
+
 button{
     background-color: #454546; /* Azul marino */
     color: white;
     font-family: sans-serif;
     border: none;
     padding: 10px 20px;
-    font-size: 16px;
+    font-size: 26px;
     font-weight: bold;
     cursor: pointer;
     border-radius: 5px;
@@ -16,26 +21,27 @@ button {
     display: flex;
     justify-content: center; /* Centra los botones horizontalmente */
     align-items: center; /* Centra los botones verticalmente */
-    width: 50%; /* Ocupa todo el ancho de la pantalla */
-    height: 50vh; /* Ocupa toda la altura de la pantalla */
+    width: 30%; /* Ocupa todo el ancho de la pantalla */
+    height: 80px; /* Ocupa toda la altura de la pantalla */
     gap: 20px; /* Espacio entre los botones */
 }
 
-button {
-    flex: 1; /* Hace que todos los botones crezcan para ocupar el espacio disponible */
-    padding: 20px; /* Aumenta el tamaño del botón */
-    font-size: 24px; /* Hace el texto más grande */
-    border-radius: 8px;
-    border: none;
-    cursor: pointer;
-    max-width: 300px; /* Limita el ancho máximo de cada botón */
-}
+
 
 .ajuste {
     display: grid;
     grid-template-columns: repeat(3, 1fr); /* Tres columnas iguales */
     flex-wrap: wrap; /* Permite que los elementos se muevan a la siguiente línea */
     gap: 10px; /* Espaciado opcional entre botones */
+    margin: 10px 50px 0px 50px;
+  }
+
+  .ajuste2{
+    display: grid;
+    grid-template-columns: repeat(2, 1fr); /* Tres columnas iguales */
+    
+    gap: 10px; /* Espaciado opcional entre botones */
+    margin: 30px 150px;
   }
   
   button {

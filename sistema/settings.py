@@ -25,7 +25,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = 'django-insecure-s%g5d%^d31#p3*yv#58ej4_cloxjunvy&c$8z6at-6=+pq=4@c'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = False
+DEBUG = True
 
 ALLOWED_HOSTS = ['*']
 
@@ -78,11 +78,14 @@ WSGI_APPLICATION = 'sistema.wsgi.application'
 # https://docs.djangoproject.com/en/5.1/ref/settings/#databases
 
 DATABASES = {    
-    'default': dj_database_url.config(
-        # Replace this value with your local database's connection string.
-        default='postgresql://postgres:postgres@localhost:5432/mysite',
-        conn_max_age=600
-    )
+    'default': {
+        'ENGINE' : 'django.db.backends.postgresql',
+        'NAME': 'sc_sic',
+        'USER' : 'sic115',
+        'PASSWORD': 'sic115',
+        'HOST': 'localhost',
+        'PORT': '5435'
+    }
 }
 
 
