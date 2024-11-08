@@ -1,0 +1,94 @@
+h1{
+    text-align: center;
+    margin: 30px auto 0 auto;
+}
+
+.formulario{
+    background: linear-gradient(#003785, #1465bb);
+    /*background-color: rgb(84, 87, 228);*/
+    width: 65%;
+    height: auto;
+    padding: 5px 10px 10px 10px;
+    margin: 30px auto;
+    box-shadow: 0px 0px 50px 0px #0007;
+    border-radius: 5%;
+    color: #ccc;
+    padding: 10px 10px 10px 40px;
+}
+
+.form-control{    
+    margin: 30px 10px 20px 20px;
+    background-color: transparent;
+    border: none;
+    border-bottom: 1.5px solid rgb(255, 255, 255);
+    color: rgb(226, 229, 233);
+    font-size: 17px;
+}
+
+.descripcion{
+    color: blue;
+}
+
+.form-control2 {
+    width: 65%;
+    padding: 10px;
+    border-radius: 5px;
+    border: 1px solid #ccc;
+    font-size: 16px;
+    height: 40px;
+    resize: none;
+    margin: 10px 0 0 0;
+}
+
+label[for="id_descripcion"] {
+    padding: 5px 0;
+    margin: 5px 0;
+    font-weight: bold;
+    font-size: 18px;
+    text-align: center;
+}
+label[for="id_productividad"] {
+    padding: 5px 0;
+    margin: 5px 0;
+    font-weight: bold;
+    font-size: 18px;
+    text-align: center;
+}
+
+label[for="id_costos_indirectos"] {
+    padding: 5px 0;
+    margin: 5px 0;
+    font-weight: bold;
+    font-size: 18px;
+    text-align: center;
+}
+
+label[for="id_nombre"] {
+    padding: 5px 0;
+    margin: 5px 0;
+    font-weight: bold;
+    font-size: 18px;
+    text-align: center;
+}
+label[for="id_puntos_funcion_total"] {    
+    margin: 5px 0;
+    font-weight: bold;
+    font-size: 18px;
+    text-align: center;
+}
+
+button{
+    font-family: sans-serif;
+    width: 30%;
+    text-align: center;
+    margin: 15px 0px 15px 0px;
+    color: aliceblue;
+    background-color: transparent;
+    border: aliceblue 2px solid;
+    padding: 10px;    
+    font-size: 17px;    
+}
+
+.checkbox-group{
+    margin: 5px;
+}

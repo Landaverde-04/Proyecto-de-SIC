@@ -87,10 +87,23 @@ class ProyectoForm(forms.ModelForm):
     class Meta:
         model = Proyecto
         fields = ['nombre', 'descripcion', 'puntos_funcion_total', 'productividad', 'costos_directos', 'costos_indirectos']
-        widgets = {
-            'costos_directos': forms.CheckboxSelectMultiple,
-            'costos_indirectos': forms.CheckboxSelectMultiple,
+        labels = {
+            'nombre': 'Nombre del Proyecto',
+            'descripcion': 'Descripción',
+            'puntos_funcion_total': 'Puntos de Función',
+            'productividad': 'Productividad ',
+            'costos_directos': 'Costos Directos',
+            'costos_indirectos': 'Costos Indirectos',
         }
+        widgets = {
+            'nombre': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Nombre del proyecto'}),
+            'descripcion': forms.Textarea(attrs={'class': 'form-control2', 'placeholder': 'Descripción del proyecto'}),
+            'puntos_funcion_total': forms.NumberInput(attrs={'class': 'form-control'}),
+            'productividad': forms.NumberInput(attrs={'class': 'form-control'}),
+            'costos_directos': forms.CheckboxSelectMultiple(attrs={'class': 'checkbox-group'}),
+            'costos_indirectos': forms.CheckboxSelectMultiple(attrs={'class': 'checkbox-group'}),
+        }
+
 
     def save(self, commit=True):
         # Primero, guarda el proyecto sin relaciones Many-to-Many para obtener un ID

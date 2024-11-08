@@ -118,6 +118,7 @@
                     {% for puesto in costos_directos %}
                     <tr id="cd-row-{{ puesto.id }}">
                         <td><input class="input-cd" type="text" name="nombre" value="{{ puesto.nombre }}" readonly></td>                        
+                        <td><input class="input-cd" type="number" name="salario_mensual" value="{{ puesto.salario_mensual|floatformat:2 }}" readonly></td>
                         <td><input class="input-cd" type="number" name="cantidad_empleados" value="{{ puesto.cantidad_empleados }}" readonly></td>
                         <td><input class="input-cd" type="number" name="afp" value="{{ puesto.afp|floatformat:2 }}" readonly></td>
                         <td><input class="input-cd" type="number" name="incaf" value="{{ puesto.incaf|floatformat:2 }}" readonly></td>
@@ -125,7 +126,7 @@
                         <td><input class="input-cd" type="number" name="vacaciones" value="{{ puesto.vacaciones|floatformat:2 }}" readonly></td>
                         <td><input class="input-cd" type="number" name="aguinaldo" value="{{ puesto.aguinaldo|floatformat:2 }}" readonly></td>
                         <td><input class="input-cd" type="number" name="total_con_prestaciones" value="{{ puesto.total_con_prestaciones|floatformat:2 }}" readonly></td>
-                        <td><input class="input-cd" type="number" name="salario_mensual" value="{{ puesto.salario_mensual|floatformat:2 }}" readonly></td>
+                        
                         <td>
                             <button type="button" onclick="toggleEdit('cd', {{ puesto.id }})" id="cd-btn-{{ puesto.id }}">Editar</button>
                         </td>

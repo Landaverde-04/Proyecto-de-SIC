@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     {% load static %}
     <title>Detalle del Proyecto - {{ proyecto.nombre }}</title>
-    <link rel="stylesheet" href="{% static 'styles.css' %}">
+    <link rel="stylesheet" href="{% static 'detalle_proyecto.css' %}">
     <link rel="stylesheet" href="{% static 'menu.css' %}">
 </head>
 <body class="cuerpo">
@@ -28,7 +28,8 @@
             </div>
         </div>
     </header>  
-
+</body>
+<body>
     <main class="container">
         <h1>Detalle del Proyecto: {{ proyecto.nombre }}</h1>
         <p><strong>Descripción:</strong> {{ proyecto.descripcion }}</p>
@@ -39,27 +40,26 @@
         <p><strong>Esfuerzo Total:</strong> {{ proyecto.esfuerzo_total|floatformat:2 }}</p>
         <p><strong>Costo Total:</strong> ${{ proyecto.costo_total|floatformat:2 }}</p>
 
+        <div class="div-ci">
         <!-- Costos Indirectos -->
         <h2>Costos Indirectos Involucrados</h2>
         <table>
             <thead>
                 <tr>
-                    <th>Nombre</th>
-                    <th>Descripción</th>
+                    <th>Nombre</th>                    
                     <th>Monto</th>
                 </tr>
             </thead>
             <tbody>
                 {% for costo_indirecto in proyecto.costos_indirectos.all %}
                 <tr>
-                    <td>{{ costo_indirecto.nombre }}</td>
-                    <td>{{ costo_indirecto.descripcion }}</td>
+                    <td>{{ costo_indirecto.nombre }}</td>                    
                     <td>${{ costo_indirecto.monto|floatformat:2 }}</td>
                 </tr>
                 {% endfor %}
             </tbody>
         </table>
-
+        </div>
         <!-- Costos Directos -->
         <h2>Costos Directos Involucrados</h2>
         <table>
