@@ -1,6 +1,6 @@
 from django import views
 from django.urls import path
-from .views import detalle_proyecto, editar_costo_directo, editar_costo_indirecto, editar_proyecto, eliminar_costo_directo, eliminar_costo_indirecto, filtrar_cuentas_por_tipo, inicio,catalogo_cuentas, libro_mayor,registrar_cuenta,transacciones,nueva_transaccion,ver_transaccion,api_libro_mayor, metodos_costeo, reportes_contables, balance_general,crear_costo_indirecto_ajax,nuevo_proyecto, balance_comprobacion, estado_resultados, crear_periodo_contable, capital_social, cerrar_periodo_contable
+from .views import crear_costo_directo_ajax, detalle_proyecto, editar_costo_directo, editar_costo_indirecto, editar_proyecto, eliminar_costo_directo, eliminar_costo_indirecto, filtrar_cuentas_por_tipo, inicio,catalogo_cuentas, libro_mayor,registrar_cuenta,transacciones,nueva_transaccion,ver_transaccion,api_libro_mayor, metodos_costeo, reportes_contables, balance_general,crear_costo_indirecto_ajax,nuevo_proyecto, balance_comprobacion, estado_resultados, crear_periodo_contable, capital_social, cerrar_periodo_contable
 
 urlpatterns = [
     path('', inicio, name='inicio'),
@@ -16,6 +16,7 @@ urlpatterns = [
     path('reportes/', reportes_contables, name='reportes_contables'),
     path('balance-general/', balance_general, name='balance_general'),
     path('costos-indirectos/crear/ajax/',crear_costo_indirecto_ajax, name='crear_costo_indirecto_ajax'),
+    path('costos-directos/crear/ajax/', crear_costo_directo_ajax, name='crear_costo_directo_ajax'),
     path('nuevo-proyecto/', nuevo_proyecto, name='nuevo_proyecto'),
     path('balance-comprobacion/', balance_comprobacion, name='balance_comprobacion'),
     path('estado-resultados/', estado_resultados, name='estado_resultados'),

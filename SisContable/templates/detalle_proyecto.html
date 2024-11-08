@@ -39,11 +39,75 @@
         <p><strong>Esfuerzo Total:</strong> {{ proyecto.esfuerzo_total|floatformat:2 }}</p>
         <p><strong>Costo Total:</strong> ${{ proyecto.costo_total|floatformat:2 }}</p>
 
-        <button onclick="window.location.href='{% url 'editar_proyecto' proyecto.id %}'" class="button">Editar Proyecto</button>
+        <!-- Costos Indirectos -->
+        <h2>Costos Indirectos Involucrados</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>Nombre</th>
+                    <th>Descripción</th>
+                    <th>Monto</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for costo_indirecto in proyecto.costos_indirectos.all %}
+                <tr>
+                    <td>{{ costo_indirecto.nombre }}</td>
+                    <td>{{ costo_indirecto.descripcion }}</td>
+                    <td>${{ costo_indirecto.monto|floatformat:2 }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+
+        <!-- Costos Directos -->
+        <h2>Costos Directos Involucrados</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>Nombre del Puesto</th>
+                    <th>Salario Mensual</th>
+                    <th>Cantidad de Empleados</th>
+                    <th>AFP</th>
+                    <th>INCAF</th>
+                    <th>Seguro Social</th>
+                    <th>Vacaciones</th>
+                    <th>Aguinaldo</th>
+                    <th>Total con Prestaciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for costo_directo in proyecto.costos_directos.all %}
+                <tr>
+                    <td>{{ costo_directo.nombre }}</td>
+                    <td>${{ costo_directo.salario_mensual|floatformat:2 }}</td>
+                    <td>{{ costo_directo.cantidad_empleados }}</td>
+                    <td>${{ costo_directo.afp|floatformat:2 }}</td>
+                    <td>${{ costo_directo.incaf|floatformat:2 }}</td>
+                    <td>${{ costo_directo.isss|floatformat:2 }}</td>
+                    <td>${{ costo_directo.vacaciones|floatformat:2 }}</td>
+                    <td>${{ costo_directo.aguinaldo|floatformat:2 }}</td>
+                    <td>${{ costo_directo.total_con_prestaciones|floatformat:2 }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+
+        <!-- Botones de acción -->
+        <button onclick="confirmEdit()" class="button">Editar Proyecto</button>
         <button onclick="window.location.href='{% url 'metodos-costeo' %}'" class="button">Volver</button>
     </main>
+
+    <script>
+        function confirmEdit() {
+            if (confirm("¿Está seguro que quiere editar este proyecto?")) {
+                window.location.href = "{% url 'editar_proyecto' proyecto.id %}";
+            }
+        }
+    </script>
 </body>
 </html>
+
 
 
 

@@ -313,11 +313,36 @@ def metodos_costeo(request):
     }
     return render(request, 'metodos-costeo.html', context)
 
+# Crear Costo Directo con AJAX
+def crear_costo_directo_ajax(request):
+    if request.method == 'POST':
+        form = CostoDirectoForm(request.POST)
+        nombre = request.POST.get('nombre')
+        
+        if CostoDirecto.objects.filter(nombre=nombre).exists():
+            return JsonResponse({'success': False, 'error': 'duplicate'}, status=400)
+        
+        if form.is_valid():
+            costo = form.save()
+            return JsonResponse({
+                'success': True,
+                'costo': {
+                    'id': costo.id,  # Incluye el ID para manipulación en el frontend
+                    'nombre': costo.nombre,
+                    'salario_mensual': costo.salario_mensual,
+                    'cantidad_empleados': costo.cantidad_empleados
+                }
+            })
+        else:
+            return JsonResponse({'success': False, 'errors': form.errors}, status=400)
+    return JsonResponse({'success': False}, status=400)
+
+# Crear Costo Indirecto con AJAX
 def crear_costo_indirecto_ajax(request):
     if request.method == 'POST':
         form = CostoIndirectoForm(request.POST)
         nombre = request.POST.get('nombre')
-        # Verificar si el costo indirecto ya existe
+        
         if CostoIndirecto.objects.filter(nombre=nombre).exists():
             return JsonResponse({'success': False, 'error': 'duplicate'}, status=400)
         
@@ -326,6 +351,7 @@ def crear_costo_indirecto_ajax(request):
             return JsonResponse({
                 'success': True,
                 'costo': {
+                    'id': costo.id,  # Incluye el ID
                     'nombre': costo.nombre,
                     'descripcion': costo.descripcion,
                     'monto': costo.monto
@@ -335,42 +361,45 @@ def crear_costo_indirecto_ajax(request):
             return JsonResponse({'success': False, 'errors': form.errors}, status=400)
     return JsonResponse({'success': False}, status=400)
 
-# Editar Costo Indirecto
-def editar_costo_indirecto(request, id):
-    if request.method == 'POST':
-        costo = get_object_or_404(CostoIndirecto, id=id)
-        costo.nombre = request.POST.get('nombre')
-        costo.monto = request.POST.get('monto')
-        costo.save()
-        messages.success(request, 'Costo indirecto actualizado exitosamente.')
-    return redirect('metodos-costeo')
-
-# Eliminar Costo Indirecto
+# Eliminar Costo Indirecto con AJAX
 def eliminar_costo_indirecto(request, id):
     costo = get_object_or_404(CostoIndirecto, id=id)
     if request.method == 'POST':
         costo.delete()
-        messages.success(request, 'Costo indirecto eliminado exitosamente.')
-    return redirect('metodos-costeo')
+        return JsonResponse({'success': True})
+    return JsonResponse({'success': False}, status=400)
 
-# Editar Costo Directo
-def editar_costo_directo(request, id):
-    if request.method == 'POST':
-        costo = get_object_or_404(CostoDirecto, id=id)
-        costo.nombre = request.POST.get('nombre')
-        costo.salario_mensual = request.POST.get('salario_mensual')
-        costo.cantidad_empleados = request.POST.get('cantidad_empleados')
-        costo.save()
-        messages.success(request, 'Costo directo actualizado exitosamente.')
-    return redirect('metodos-costeo')
-
-# Eliminar Costo Directo
+# Eliminar Costo Directo con AJAX
 def eliminar_costo_directo(request, id):
     costo = get_object_or_404(CostoDirecto, id=id)
     if request.method == 'POST':
         costo.delete()
-        messages.success(request, 'Costo directo eliminado exitosamente.')
-    return redirect('metodos-costeo')
+        return JsonResponse({'success': True})
+    return JsonResponse({'success': False}, status=400)
+
+# Editar Costo Indirecto con AJAX
+def editar_costo_indirecto(request, id):
+    if request.method == 'POST':
+        costo = get_object_or_404(CostoIndirecto, id=id)
+        form = CostoIndirectoForm(request.POST, instance=costo)
+        if form.is_valid():
+            form.save()
+            return JsonResponse({'success': True})
+        else:
+            return JsonResponse({'success': False, 'errors': form.errors}, status=400)
+    return JsonResponse({'success': False}, status=400)
+
+# Editar Costo Directo con AJAX
+def editar_costo_directo(request, id):
+    if request.method == 'POST':
+        costo = get_object_or_404(CostoDirecto, id=id)
+        form = CostoDirectoForm(request.POST, instance=costo)
+        if form.is_valid():
+            form.save()
+            return JsonResponse({'success': True})
+        else:
+            return JsonResponse({'success': False, 'errors': form.errors}, status=400)
+    return JsonResponse({'success': False}, status=400)
 
 def nuevo_proyecto(request):
     if request.method == 'POST':
