@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     {% load static %}
     <title>Editar Proyecto - TechSolutions</title>
-    <link rel="stylesheet" href="{% static 'styles.css' %}">
+    <link rel="stylesheet" href="{% static 'nuevo_proyecto.css' %}">
     <link rel="stylesheet" href="{% static 'menu.css' %}">
 </head>
 <body class="cuerpo">
@@ -28,13 +28,13 @@
             </div>
         </div>
     </header>  
-
+</body>
+<body class="cuerpo-registro">
     <main class="container">
-        <h1>Editar Proyecto: {{ proyecto.nombre }}</h1>
-        <p>Modifica los campos necesarios para actualizar el proyecto.</p>
-
+        
         <!-- Formulario para editar un proyecto -->
-        <form method="post" class="form-proyecto">
+        <form method="post" class="formulario">
+            <h1>Editar Proyecto: {{ proyecto.nombre }}</h1>
             {% csrf_token %}
             {{ form.as_p }}
             <button type="submit" class="button">Guardar Cambios</button>
