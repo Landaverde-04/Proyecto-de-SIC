@@ -1,4 +1,7 @@
-
+.contenido{
+    width: 50%;
+    margin: 20px auto;
+}
 
 button{
     background-color: #454546; /* Azul marino */
@@ -102,7 +105,3 @@ h1{
     margin: 10px auto;
 }
 
-.div-contenido{
-    width: 50%;
-    margin: 20px auto;
-}
